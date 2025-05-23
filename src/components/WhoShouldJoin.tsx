@@ -106,11 +106,11 @@ const WhoShouldJoin = () => {
           `,
           backgroundSize: '60px 60px'
         }} />
-        
+
         {/* Enhanced Orbs */}
         <div className="absolute top-20 right-20 w-80 h-80 bg-gradient-to-br from-cyan-300/20 to-blue-400/20 rounded-full blur-3xl animate-pulse" />
-        <div className="absolute bottom-20 left-20 w-80 h-80 bg-gradient-to-br from-purple-300/20 to-violet-400/20 rounded-full blur-3xl animate-pulse" style={{animationDelay: '2s'}} />
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-gradient-to-br from-emerald-300/15 to-teal-400/15 rounded-full blur-2xl animate-pulse" style={{animationDelay: '4s'}} />
+        <div className="absolute bottom-20 left-20 w-80 h-80 bg-gradient-to-br from-purple-300/20 to-violet-400/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }} />
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-gradient-to-br from-emerald-300/15 to-teal-400/15 rounded-full blur-2xl animate-pulse" style={{ animationDelay: '4s' }} />
       </div>
 
       {/* AI Circuit Pattern Overlay */}
@@ -196,17 +196,17 @@ const WhoShouldJoin = () => {
               Join?
             </span>
           </h2>
-          
+
           <div className="w-32 h-1 bg-gradient-to-r from-cyan-500 to-purple-500 rounded-full mx-auto opacity-80" />
         </div>
 
         {/* Enhanced Main Card */}
         <div className="relative group mb-16">
           <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/5 to-purple-500/5 rounded-3xl blur-sm" />
-          
+
           <div className="relative bg-white/70 backdrop-blur-xl border border-slate-200/60 rounded-3xl p-12 shadow-2xl">
             <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-cyan-500 via-blue-500 to-purple-500 rounded-t-3xl" />
-            
+
             {/* Enhanced Introduction */}
             <div className="text-center mb-16">
               <div className="inline-flex items-center space-x-3 bg-white/80 backdrop-blur-sm border border-slate-200/60 px-8 py-4 rounded-full mb-8 shadow-lg">
@@ -218,15 +218,20 @@ const WhoShouldJoin = () => {
                   Perfect for Creative & Technical Professionals
                 </span>
               </div>
-              
+
               <p className="text-2xl md:text-3xl text-slate-800 leading-relaxed font-light max-w-4xl mx-auto">
-                We're building for professionals who elevate performance and want to{" "}
-                <span className="font-bold bg-gradient-to-r from-cyan-600 to-purple-600 bg-clip-text text-transparent">
-                  amplify their creative potential
+                Empowering professionals to {" "}
+                <span className="font-bold bg-gradient-to-r from-emerald-600 to-cyan-600 bg-clip-text text-transparent">
+                  unlock peak performance
                 </span>{" "}
-                with AI-powered assistance.
+                and{" "}
+                <span className="font-bold bg-gradient-to-r from-fuchsia-600 to-purple-600 bg-clip-text text-transparent">
+                  unleash creativity
+                </span>{" "}
+                with AI by their side.
               </p>
             </div>
+
 
             {/* Enhanced Specializations Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
@@ -235,7 +240,7 @@ const WhoShouldJoin = () => {
                   <div className="relative h-full">
                     {/* Glow Effect */}
                     <div className={`absolute inset-0 bg-gradient-to-r ${gradient} opacity-0 group-hover:opacity-10 rounded-2xl blur-xl transition-all duration-500`} />
-                    
+
                     {/* Main Card */}
                     <div className={`
                       relative h-full flex flex-col justify-center items-center
@@ -252,12 +257,12 @@ const WhoShouldJoin = () => {
                           <Icon className="w-6 h-6 text-white" />
                         </div>
                       </div>
-                      
+
                       {/* Enhanced Text */}
                       <p className="text-slate-800 font-semibold text-sm leading-tight text-center group-hover:text-slate-900 transition-colors">
                         {text}
                       </p>
-                      
+
                       {/* Subtle Accent Line */}
                       <div className={`w-8 h-0.5 bg-gradient-to-r ${gradient} rounded-full mt-2 opacity-60 group-hover:opacity-100 transition-opacity`} />
                     </div>
@@ -265,9 +270,9 @@ const WhoShouldJoin = () => {
                 </div>
               ))}
             </div>
-            
+
             {/* Bottom Enhancement */}
-            <div className="mt-12 text-center">
+            {/* <div className="mt-12 text-center">
               <div className="inline-flex items-center space-x-2 bg-gradient-to-r from-slate-100/80 to-white/80 backdrop-blur-sm border border-slate-200/60 px-6 py-3 rounded-full shadow-md">
                 <Zap className="w-5 h-5 text-amber-600" />
                 <span className="text-slate-700 font-medium">
@@ -275,10 +280,10 @@ const WhoShouldJoin = () => {
                 </span>
                 <Sparkles className="w-5 h-5 text-purple-600" />
               </div>
-            </div>
+            </div> */}
           </div>
         </div>
-{/* 
+        {/* 
         {/* Enhanced Call to Action */}
         {/* <div className="text-center">
           <div className="relative inline-block max-w-4xl">
@@ -292,8 +297,8 @@ const WhoShouldJoin = () => {
                 <div className="bg-gradient-to-r from-cyan-500 to-blue-500 p-3 rounded-full shadow-lg">
                   <Sparkles className="w-6 h-6 text-white" />
                 </div> */}
-              {/* </div> */}
-{/*               
+        {/* </div> */}
+        {/*               
               <h3 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4">
                 Ready to experience{' '}
                 <span className="bg-gradient-to-r from-emerald-600 to-cyan-600 bg-clip-text text-transparent">
@@ -304,8 +309,8 @@ const WhoShouldJoin = () => {
               <p className="text-lg text-slate-700 leading-relaxed">
                 Join the future of work where AI amplifies your capabilities and accelerates your success.
               </p> */}
-            {/* </div> */}
-          {/* </div> */}
+        {/* </div> */}
+        {/* </div> */}
         {/* </div> */}
       </div>
 

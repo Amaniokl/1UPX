@@ -12,6 +12,7 @@ import Footer from './components/Footer';
 import ScrollObserver from './components/ScrollObserver';
 import PrivacyOwnership from './components/Privacy';
 import FloatingChatbot from './components/FloatingChatBot';
+import OurMission from './components/OurMission';
 function App() {
   return (
     <div className="min-h-screen bg-background">
@@ -19,12 +20,13 @@ function App() {
         <FloatingChatbot/>
         <Navbar />
         <Hero />
-        <PrivacyOwnership/>
-        <WhatWeDo />
-        <WhyWeDo />
-        <HowWeDo />
-        <Benefits />
         <WhoShouldJoin />
+        <HowWeDo />
+        {/* <WhatWeDo />
+        <WhyWeDo /> */}
+        <OurMission/>
+        {/* <PrivacyOwnership/> */}
+        <Benefits />
         {/* <CallToAction /> */}
         <SignUpForm />
         <Footer />

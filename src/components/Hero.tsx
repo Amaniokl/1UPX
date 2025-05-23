@@ -109,7 +109,7 @@ const Hero = () => {
             </span>
             <br />
             <span className="bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-500 bg-clip-text text-transparent">
-              AI Workmate
+              AI Twin
             </span>
           </h1>
           

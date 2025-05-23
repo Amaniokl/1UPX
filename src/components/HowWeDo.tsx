@@ -1,6 +1,21 @@
 import React from 'react';
 import { Workflow, FileText, Users, Eye, Database, Brain, Cpu, Zap } from 'lucide-react';
-import SectionHeading from './shared/SectionHeading';
+
+const SectionHeading = ({ title, icon }) => {
+  return (
+    <div className="text-center mb-16">
+      <div className="inline-flex items-center justify-center mb-6">
+        <div className="bg-gradient-to-r from-blue-500 to-purple-500 p-4 rounded-2xl shadow-2xl">
+          {icon}
+        </div>
+      </div>
+      <h2 className="text-5xl md:text-5xl font-black mb-4 text-slate-900">
+        {title}
+      </h2>
+      <div className="w-24 h-1 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full mx-auto"></div>
+    </div>
+  );
+};
 
 const HowWeDo = () => {
   const steps = [
@@ -67,14 +82,14 @@ const HowWeDo = () => {
         </div>
       </div>
 
-      <div className="container px-4 relative z-10">
-        <SectionHeading
+      <div className="container px-4 md:px-6 relative z-10 max-w-7xl mx-auto">
+        <SectionHeading 
           title="How Our AI Magic Works"
-          icon={<Workflow className="w-6 h-6 text-purple-600" />}
+          icon={<Workflow className="w-8 h-8 text-white" />}
         />
 
         {/* Process visualization */}
-        <div className="mt-20 max-w-7xl mx-auto">
+        <div className="mt-20">
           {/* Connection lines */}
           <div className="hidden lg:block absolute inset-0 pointer-events-none">
             <svg className="w-full h-full" viewBox="0 0 800 600">
@@ -96,17 +111,17 @@ const HowWeDo = () => {
             </svg>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {steps.map((step, index) => (
               <div
                 key={step.id}
-                className={`group relative animate-fade-in`}
+                className={`group relative animate-fade-in h-full`}
                 style={{ animationDelay: `${index * 200}ms` }}
               >
                 {/* Glowing background */}
                 <div className={`absolute inset-0 rounded-3xl bg-gradient-to-r ${step.color} opacity-10 blur-xl group-hover:opacity-20 transition-all duration-500`}></div>
                 
-                <div className={`relative p-8 rounded-3xl bg-gradient-to-br ${step.bgColor} border-2 border-white/50 shadow-xl hover:shadow-2xl transition-all duration-500 group-hover:-translate-y-2 backdrop-blur-sm`}>
+                <div className={`relative p-8 rounded-3xl bg-gradient-to-br ${step.bgColor} border-2 border-white/50 shadow-xl hover:shadow-2xl transition-all duration-500 group-hover:-translate-y-2 backdrop-blur-sm h-full flex flex-col min-h-[400px]`}>
                   {/* Top gradient bar */}
                   <div className={`absolute top-0 left-0 right-0 h-1 bg-gradient-to-r ${step.color} rounded-t-3xl`}></div>
                   
@@ -124,34 +139,34 @@ const HowWeDo = () => {
                     </div>
                   </div>
 
-                  {/* Content */}
-                  <div className="space-y-4">
+                  {/* Content - Flex grow to fill available space */}
+                  <div className="flex-grow flex flex-col justify-center space-y-4">
                     <h3 className="text-2xl font-bold text-slate-800 group-hover:text-slate-900 transition-colors">
                       {step.title}
                     </h3>
                     
-                    <p className="text-slate-700 text-lg leading-relaxed">
+                    <p className="text-slate-700 text-lg leading-relaxed flex-grow">
                       {step.description}
                     </p>
+                  </div>
                     
-                    {/* Progress indicator */}
-                    <div className="flex items-center space-x-2 pt-4">
-                      <div className="flex space-x-1">
-                        {[1, 2, 3, 4].map((dot) => (
-                          <div
-                            key={dot}
-                            className={`w-2 h-2 rounded-full transition-all duration-300 ${
-                              dot <= step.id 
-                                ? `bg-gradient-to-r ${step.color}` 
-                                : 'bg-slate-300'
-                            }`}
-                          ></div>
-                        ))}
-                      </div>
-                      <span className="text-sm text-slate-500 font-medium">
-                        Step {step.id} of 4
-                      </span>
+                  {/* Progress indicator - Fixed at bottom */}
+                  <div className="flex items-center space-x-2 pt-6 mt-auto">
+                    <div className="flex space-x-1">
+                      {[1, 2, 3, 4].map((dot) => (
+                        <div
+                          key={dot}
+                          className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                            dot <= step.id 
+                              ? `bg-gradient-to-r ${step.color}` 
+                              : 'bg-slate-300'
+                          }`}
+                        ></div>
+                      ))}
                     </div>
+                    <span className="text-sm text-slate-500 font-medium">
+                      Step {step.id} of 4
+                    </span>
                   </div>
 
                   {/* Decorative elements */}
@@ -163,7 +178,7 @@ const HowWeDo = () => {
           </div>
         </div>
 
-        {/* Bottom CTA section */}
+        {/* Bottom CTA section
         <div className="mt-20 text-center">
           <div className="relative inline-block">
             <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-600 opacity-20 blur-xl rounded-2xl"></div>
@@ -187,7 +202,7 @@ const HowWeDo = () => {
               </a>
             </div>
           </div>
-        </div>
+        </div> */}
       </div>
 
       <style jsx>{`

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Clock, CheckCircle, BarChart3, Zap, Sparkles, TrendingUp, Shield, Target, Users, Brain } from 'lucide-react';
+import { Clock, CheckCircle, BarChart3, Zap, Sparkles, TrendingUp, Shield, Target, Users, Brain, CircuitBoard, Network, Activity, Bot, Cpu } from 'lucide-react';
 
 const Benefits = () => {
   const benefits = [
@@ -7,148 +7,201 @@ const Benefits = () => {
       icon: Clock,
       title: "70% Faster Turnaround",
       description: "Your AI assistant takes on routine groundwork, accelerating your delivery timelines without sacrificing quality.",
-      gradient: "from-cyan-500 to-blue-500",
-      borderColor: "border-cyan-500/30",
+      gradient: "from-cyan-600 to-blue-600",
+      bgGradient: "from-cyan-50/80 to-blue-50/80",
+      borderGradient: "from-cyan-200/60 to-blue-200/60",
       stat: "70%",
-      statLabel: "Faster"
+      statLabel: "Faster",
+      badge: "Speed Boost"
     },
     {
       icon: CheckCircle,
       title: "Higher Accuracy & Quality",
       description: "Reduce human errors and increase consistency with your personal AI trained to deliver at your standards.",
-      gradient: "from-emerald-500 to-cyan-500",
-      borderColor: "border-emerald-500/30",
+      gradient: "from-emerald-600 to-teal-600",
+      bgGradient: "from-emerald-50/80 to-teal-50/80",
+      borderGradient: "from-emerald-200/60 to-teal-200/60",
       stat: "99%",
-      statLabel: "Accuracy"
+      statLabel: "Accuracy",
+      badge: "Quality Assured"
     },
     {
       icon: BarChart3,
       title: "Do More, Stress Less",
       description: "Easily manage more projects without compromising on quality or feeling overwhelmed.",
-      gradient: "from-purple-500 to-pink-500",
-      borderColor: "border-purple-500/30",
+      gradient: "from-purple-600 to-pink-600",
+      bgGradient: "from-purple-50/80 to-pink-50/80",
+      borderGradient: "from-purple-200/60 to-pink-200/60",
       stat: "3x",
-      statLabel: "More Projects"
+      statLabel: "More Projects",
+      badge: "Scale Efficiently"
     }
   ];
 
+  const bottomFeatures = [
+    // { 
+    //   icon: Zap, 
+    //   title: 'More Revenue', 
+    //   desc: 'Handle 3x more projects efficiently', 
+    //   gradient: 'from-amber-600 to-orange-600',
+    //   bgGradient: 'from-amber-50/80 to-orange-50/80',
+    //   borderGradient: 'from-amber-200/60 to-orange-200/60'
+    // },
+    // { 
+    //   icon: Shield, 
+    //   title: 'Less Stress', 
+    //   desc: 'AI handles the boring repetitive work', 
+    //   gradient: 'from-emerald-600 to-cyan-600',
+    //   bgGradient: 'from-emerald-50/80 to-cyan-50/80',
+    //   borderGradient: 'from-emerald-200/60 to-cyan-200/60'
+    // },
+    // { 
+    //   icon: TrendingUp, 
+    //   title: 'Better Reputation', 
+    //   desc: 'Consistent quality delivery every time', 
+    //   gradient: 'from-violet-600 to-purple-600',
+    //   bgGradient: 'from-violet-50/80 to-purple-50/80',
+    //   borderGradient: 'from-violet-200/60 to-purple-200/60'
+    // }
+  ];
+
   return (
-    <section id="benefits" className="relative overflow-hidden bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white py-24">
-      {/* Clean Grid Background - matching WhyWeDo */}
-      <div className="absolute inset-0 opacity-20">
-        <div 
-          className="absolute inset-0" 
-          style={{
-            backgroundImage: `
-              linear-gradient(rgba(14, 165, 233, 0.08) 1px, transparent 1px),
-              linear-gradient(90deg, rgba(14, 165, 233, 0.08) 1px, transparent 1px)
-            `,
-            backgroundSize: '90px 90px'
-          }} 
-        />
+    <section id="benefits" className="relative section bg-gradient-to-br from-slate-50 to-white py-24 sm:py-32 overflow-hidden">
+      {/* Enhanced Grid Pattern */}
+      <div className="absolute inset-0 z-0">
+        <div className="absolute inset-0 opacity-[0.08]" style={{
+          backgroundImage: `
+            linear-gradient(rgba(148, 163, 184, 0.1) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(148, 163, 184, 0.1) 1px, transparent 1px)
+          `,
+          backgroundSize: '60px 60px'
+        }} />
+        
+        {/* Enhanced Orbs */}
+        <div className="absolute top-20 right-20 w-80 h-80 bg-gradient-to-br from-cyan-300/20 to-blue-400/20 rounded-full blur-3xl animate-pulse" />
+        <div className="absolute bottom-20 left-20 w-80 h-80 bg-gradient-to-br from-purple-300/20 to-violet-400/20 rounded-full blur-3xl animate-pulse" style={{animationDelay: '2s'}} />
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-gradient-to-br from-emerald-300/15 to-teal-400/15 rounded-full blur-2xl animate-pulse" style={{animationDelay: '4s'}} />
       </div>
+
       {/* AI Circuit Pattern Overlay */}
-      <div className="absolute inset-0 pointer-events-none opacity-10">
+      <div className="absolute inset-0 pointer-events-none opacity-[0.06] z-0">
         <svg className="w-full h-full" viewBox="0 0 1200 800" fill="none">
-          <path d="M100 200 L300 200 L300 400 L500 400" stroke="url(#circuit-gradient)" strokeWidth="2" />
-          <path d="M800 150 L600 150 L600 350 L400 350" stroke="url(#circuit-gradient)" strokeWidth="2" />
-          <path d="M200 600 L400 600 L400 500 L600 500" stroke="url(#circuit-gradient)" strokeWidth="2" />
-          <circle cx="300" cy="200" r="8" fill="url(#node-gradient)" />
-          <circle cx="600" cy="350" r="8" fill="url(#node-gradient)" />
-          <circle cx="400" cy="500" r="8" fill="url(#node-gradient)" />
+          <path d="M100 200 L300 200 L300 400 L500 400" stroke="url(#circuit-gradient-light)" strokeWidth="1.5" />
+          <path d="M800 150 L600 150 L600 350 L400 350" stroke="url(#circuit-gradient-light)" strokeWidth="1.5" />
+          <path d="M200 600 L400 600 L400 500 L600 500" stroke="url(#circuit-gradient-light)" strokeWidth="1.5" />
+          <circle cx="300" cy="200" r="6" fill="url(#node-gradient-light)" />
+          <circle cx="600" cy="350" r="6" fill="url(#node-gradient-light)" />
+          <circle cx="400" cy="500" r="6" fill="url(#node-gradient-light)" />
           <defs>
-            <linearGradient id="circuit-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+            <linearGradient id="circuit-gradient-light" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stopColor="#06b6d4" stopOpacity="0.3" />
+              <stop offset="100%" stopColor="#8b5cf6" stopOpacity="0.3" />
+            </linearGradient>
+            <radialGradient id="node-gradient-light">
               <stop offset="0%" stopColor="#06b6d4" stopOpacity="0.4" />
               <stop offset="100%" stopColor="#8b5cf6" stopOpacity="0.4" />
-            </linearGradient>
-            <radialGradient id="node-gradient">
-              <stop offset="0%" stopColor="#06b6d4" />
-              <stop offset="100%" stopColor="#8b5cf6" />
             </radialGradient>
           </defs>
         </svg>
       </div>
 
-      {/* Subtle Glow Effects - matching WhyWeDo */}
-      <div className="absolute inset-0 opacity-40 pointer-events-none">
-        <div className="absolute top-1/4 right-1/4 w-96 h-96 rounded-full bg-gradient-to-r from-cyan-500/10 to-blue-600/10 blur-3xl" />
-        <div className="absolute bottom-1/4 left-1/4 w-96 h-96 rounded-full bg-gradient-to-r from-purple-500/8 to-violet-600/8 blur-3xl" />
+      {/* Enhanced Floating Icons */}
+      <div className="absolute inset-0 pointer-events-none z-10">
+        {[
+          { icon: CircuitBoard, color: "text-cyan-600", bg: "bg-cyan-100/80", border: "border-cyan-200/60", top: "top-24", left: "left-16", delay: "0s" },
+          { icon: Network, color: "text-purple-600", bg: "bg-purple-100/80", border: "border-purple-200/60", top: "top-40", right: "right-20", delay: "2s" },
+          { icon: Activity, color: "text-emerald-600", bg: "bg-emerald-100/80", border: "border-emerald-200/60", bottom: "bottom-40", left: "left-20", delay: "4s" },
+          { icon: Bot, color: "text-blue-600", bg: "bg-blue-100/80", border: "border-blue-200/60", bottom: "bottom-24", right: "right-16", delay: "1s" },
+          { icon: Brain, color: "text-violet-600", bg: "bg-violet-100/80", border: "border-violet-200/60", top: "top-1/3", left: "left-1/3", delay: "3s" },
+          { icon: Cpu, color: "text-indigo-600", bg: "bg-indigo-100/80", border: "border-indigo-200/60", bottom: "bottom-1/3", right: "right-1/3", delay: "5s" }
+        ].map(({ icon: Icon, color, bg, border, delay, ...position }, idx) => (
+          <div key={idx} className={`absolute animate-float ${Object.entries(position).map(([key, value]) => `${key}-${value.split('-')[1]}`).join(' ')}`} style={{ animationDelay: delay }}>
+            <div className="relative">
+              <div className={`absolute inset-0 w-10 h-10 rounded-xl ${bg} blur-sm`} />
+              <div className={`relative ${bg} backdrop-blur-sm border ${border} p-2.5 rounded-xl shadow-lg`}>
+                <Icon className={`w-5 h-5 ${color}`} />
+              </div>
+            </div>
+          </div>
+        ))}
       </div>
 
-      {/* Floating Elements - matching WhyWeDo style */}
-      <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-32 left-1/4 animate-float">
-          <div className="bg-slate-800/50 backdrop-blur-sm border border-cyan-500/30 p-3 rounded-xl">
-            <Sparkles className="w-5 h-5 text-cyan-400" />
-          </div>
-        </div>
-        
-        <div className="absolute bottom-40 right-1/4 animate-float" style={{animationDelay: '2s'}}>
-          <div className="bg-slate-800/50 backdrop-blur-sm border border-purple-500/30 p-3 rounded-xl">
-            <TrendingUp className="w-5 h-5 text-purple-400" />
-          </div>
-        </div>
-        
-        <div className="absolute top-1/2 left-16 animate-float" style={{animationDelay: '4s'}}>
-          <div className="bg-slate-800/50 backdrop-blur-sm border border-emerald-500/30 p-3 rounded-xl">
-            <Zap className="w-5 h-5 text-emerald-400" />
-          </div>
-        </div>
-      </div>
-
-      <div className="container mx-auto px-6 relative z-10 max-w-7xl">
-        {/* Header - matching WhyWeDo style */}
+      <div className="container mx-auto px-6 relative z-20 max-w-7xl">
+        {/* Enhanced Header */}
         <div className="text-center mb-20">
           <div className="inline-flex items-center justify-center mb-8">
-            <div className="bg-gradient-to-r from-purple-500 to-pink-500 p-4 rounded-2xl shadow-2xl">
-              <BarChart3 className="w-8 h-8 text-white" />
+            <div className="relative">
+              <div className="absolute inset-0 bg-gradient-to-r from-purple-500/20 to-pink-500/20 rounded-2xl blur-lg w-16 h-16" />
+              <div className="relative bg-gradient-to-r from-purple-500 to-pink-500 p-4 rounded-2xl shadow-xl">
+                <BarChart3 className="w-8 h-8 text-white" />
+              </div>
             </div>
           </div>
           
-          <h2 className="text-5xl md:text-6xl font-bold mb-6 leading-tight">
+          <h2 className="text-5xl md:text-6xl font-bold mb-6 leading-tight text-slate-900">
             How{' '}
-            <span className="bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-400 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-cyan-600 via-blue-600 to-purple-600 bg-clip-text text-transparent">
               1upX
             </span>{' '}
+            <br className="md:hidden" />
             Transforms Your Work
           </h2>
           
-          <div className="w-32 h-1 bg-gradient-to-r from-cyan-400 to-purple-400 rounded-full mx-auto opacity-80"></div>
+          <div className="w-32 h-1 bg-gradient-to-r from-cyan-500 to-purple-500 rounded-full mx-auto opacity-80" />
         </div>
 
-        {/* Benefits Cards - Equal Height like WhyWeDo */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
-          {benefits.map(({ icon: Icon, title, description, gradient, borderColor, stat, statLabel }, index) => (
-            <div key={index} className="group h-98">
-              <div className={`bg-slate-800/40 backdrop-blur-xl border ${borderColor} rounded-2xl p-10 text-center group-hover:bg-slate-800/60 group-hover:-translate-y-2 transition-all duration-300 h-full flex flex-col`}>
-                {/* Top Section: Icon and Stat */}
-                <div className="flex items-center justify-between mb-8">
-                  <div className={`bg-gradient-to-r ${gradient} p-4 rounded-xl shadow-lg`}>
-                    <Icon className="w-8 h-8 text-white" />
-                  </div>
-                  <div className="text-right">
-                    <div className={`text-4xl font-bold bg-gradient-to-r ${gradient} bg-clip-text text-transparent`}>
-                      {stat}
+        {/* Enhanced Benefits Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-20">
+          {benefits.map(({ icon: Icon, title, description, gradient, bgGradient, borderGradient, stat, statLabel, badge }, index) => (
+            <div key={index} className="group h-full">
+              <div className={`relative h-full`}>
+                {/* Glow Effect */}
+                <div className={`absolute inset-0 bg-gradient-to-r ${gradient} opacity-0 group-hover:opacity-10 rounded-3xl blur-xl transition-all duration-500`} />
+                
+                {/* Main Card */}
+                <div className={`
+                  relative h-full flex flex-col
+                  rounded-3xl p-8
+                  bg-gradient-to-br ${bgGradient} backdrop-blur-sm
+                  border border-gradient-to-r ${borderGradient}
+                  shadow-lg group-hover:shadow-xl
+                  group-hover:scale-[1.02] transition-all duration-300
+                  overflow-hidden
+                `}>
+                  <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-cyan-500 via-blue-500 to-purple-500 rounded-t-3xl" />
+                  
+                  {/* Top Section: Icon and Stat */}
+                  <div className="flex items-center justify-between mb-8">
+                    <div className="relative">
+                      <div className={`absolute inset-0 bg-gradient-to-r ${gradient} opacity-20 rounded-xl blur-sm w-12 h-12`} />
+                      <div className={`relative bg-gradient-to-r ${gradient} p-3 rounded-xl shadow-lg group-hover:scale-110 transition-transform duration-300`}>
+                        <Icon className="w-6 h-6 text-white" />
+                      </div>
                     </div>
-                    <div className="text-sm text-slate-400 font-medium">{statLabel}</div>
+                    <div className="text-right">
+                      <div className={`text-4xl font-bold bg-gradient-to-r ${gradient} bg-clip-text text-transparent`}>
+                        {stat}
+                      </div>
+                      <div className="text-sm text-slate-600 font-medium mt-1">{statLabel}</div>
+                    </div>
                   </div>
-                </div>
 
-                {/* Middle Section: Title */}
-                <h3 className="text-2xl font-bold text-white mb-6">{title}</h3>
+                  {/* Middle Section: Title */}
+                  <h3 className="text-2xl font-bold text-slate-900 mb-6 leading-tight">{title}</h3>
 
-                {/* Bottom Section: Description */}
-                <div className="flex-1 flex items-center">
-                  <p className="text-slate-300 leading-relaxed text-lg">{description}</p>
-                </div>
+                  {/* Description */}
+                  <div className="flex-1 flex items-center mb-8">
+                    <p className="text-slate-700 leading-relaxed text-lg">{description}</p>
+                  </div>
 
-                {/* Bottom Badge */}
-                <div className="mt-6 pt-4 border-t border-slate-700/50">
-                  <div className={`inline-flex items-center space-x-2 bg-gradient-to-r ${gradient} bg-opacity-10 border ${borderColor} px-4 py-2 rounded-full`}>
-                    <div className={`w-2 h-2 rounded-full bg-gradient-to-r ${gradient}`}></div>
-                    <span className="text-sm font-medium text-slate-300">
-                      {index === 0 ? 'Speed Boost' : index === 1 ? 'Quality Assured' : 'Scale Efficiently'}
-                    </span>
+                  {/* Bottom Badge */}
+                  <div className="mt-auto pt-6 border-t border-slate-200/50">
+                    <div className={`inline-flex items-center space-x-3 bg-gradient-to-r ${bgGradient} border ${borderGradient} px-5 py-3 rounded-full group-hover:shadow-lg transition-shadow duration-300`}>
+                      <div className={`w-2 h-2 rounded-full bg-gradient-to-r ${gradient} animate-pulse`}></div>
+                      <span className="text-sm font-semibold text-slate-800">
+                        {badge}
+                      </span>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -156,75 +209,105 @@ const Benefits = () => {
           ))}
         </div>
 
-        {/* Summary Section - matching WhyWeDo structure */}
+        {/* Enhanced Summary Section */}
         <div className="relative group">
-          <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/5 to-purple-500/5 rounded-3xl blur-sm"></div>
+          <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/5 to-purple-500/5 rounded-3xl blur-sm" />
           
-          <div className="relative bg-slate-800/40 backdrop-blur-xl border border-slate-700/50 rounded-3xl p-12">
-            <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-400 rounded-t-3xl"></div>
+          <div className="relative bg-white/70 backdrop-blur-xl border border-slate-200/60 rounded-3xl p-12 shadow-2xl overflow-hidden">
+            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-cyan-500 via-blue-500 to-purple-500 rounded-t-3xl" />
             
-            {/* Header */}
-            <div className="text-center mb-12">
-              <div className="inline-flex items-center space-x-4 mb-8">
-                <div className="w-20 h-px bg-gradient-to-r from-cyan-400 to-blue-400"></div>
-                <div className="bg-gradient-to-r from-amber-500 to-orange-500 p-4 rounded-full shadow-lg">
-                  <Sparkles className="w-8 h-8 text-white" />
+            {/* Enhanced Header */}
+            <div className="text-center mb-16">
+              <div className="inline-flex items-center space-x-3 bg-white/80 backdrop-blur-sm border border-slate-200/60 px-8 py-4 rounded-full mb-8 shadow-lg">
+                <div className="relative">
+                  <div className="absolute inset-0 bg-emerald-500/20 rounded-full blur-sm w-6 h-6" />
+                  <Sparkles className="relative w-6 h-6 text-emerald-600" />
                 </div>
-                <div className="w-20 h-px bg-gradient-to-r from-blue-400 to-purple-400"></div>
+                <span className="text-slate-800 font-semibold text-lg">
+                  The Complete AI Advantage
+                </span>
               </div>
               
-              <h3 className="text-4xl md:text-5xl font-bold text-white mb-8">
-                The Complete{' '}
-                <span className="bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-400 bg-clip-text text-transparent">
-                  AI Advantage
+              <h3 className="text-4xl md:text-5xl font-bold text-slate-900 mb-8 leading-tight">
+                Transform Your{' '}
+                <span className="bg-gradient-to-r from-cyan-600 via-blue-600 to-purple-600 bg-clip-text text-transparent">
+                  Entire Career
                 </span>
               </h3>
             </div>
 
-            {/* Main Content */}
-            <div className="bg-gradient-to-br from-cyan-500/10 to-purple-500/10 border border-cyan-500/20 rounded-2xl p-10 text-center mb-12">
-              <p className="text-xl md:text-2xl text-slate-100 leading-relaxed mb-8">
-                When you combine faster turnaround, higher accuracy, and the ability to handle more projects, 
-                you don't just work better—you{' '}
-                <span className="font-bold bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent">
-                  transform your entire career
-                </span>.
-              </p>
+            {/* Enhanced Main Content */}
+            <div className="relative bg-gradient-to-br from-cyan-50/80 to-purple-50/80 border border-cyan-200/60 rounded-3xl p-12 text-center mb-16 overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/5 to-purple-500/5 animate-pulse"></div>
+              <div className="relative z-10">
+                <p className="text-xl md:text-2xl text-slate-800 leading-relaxed mb-8">
+                  When you combine faster turnaround, higher accuracy, and the ability to handle more projects, 
+                  you don't just work better—you{' '}
+                  <span className="font-bold bg-gradient-to-r from-cyan-600 to-purple-600 bg-clip-text text-transparent">
+                    transform your entire career
+                  </span>.
+                </p>
+                
+                <div className="flex justify-center items-center space-x-8 mt-8">
+                  <div className="text-center">
+                    <div className="text-3xl font-bold text-cyan-600">70%</div>
+                    <div className="text-sm text-slate-600">Faster</div>
+                  </div>
+                  <div className="w-px h-12 bg-slate-300"></div>
+                  <div className="text-center">
+                    <div className="text-3xl font-bold text-emerald-600">99%</div>
+                    <div className="text-sm text-slate-600">Accuracy</div>
+                  </div>
+                  <div className="w-px h-12 bg-slate-300"></div>
+                  <div className="text-center">
+                    <div className="text-3xl font-bold text-purple-600">3x</div>
+                    <div className="text-sm text-slate-600">Projects</div>
+                  </div>
+                </div>
+              </div>
             </div>
 
-            {/* Bottom Feature Grid - Equal Height */}
+            {/* Enhanced Bottom Feature Grid */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-  {[
-    { icon: Zap, title: 'More Revenue', desc: 'Handle 3x more projects efficiently', gradient: 'from-amber-500 to-orange-500' },
-    { icon: Shield, title: 'Less Stress', desc: 'AI handles the boring repetitive work', gradient: 'from-emerald-500 to-cyan-500' },
-    { icon: TrendingUp, title: 'Better Reputation', desc: 'Consistent quality delivery every time', gradient: 'from-purple-500 to-pink-500' }
-  ].map(({ icon: Icon, title, desc, gradient }, i) => (
-    <div
-      key={i}
-      className="min-h-[260px] bg-slate-700/30 backdrop-blur-sm border border-slate-600/50 rounded-2xl p-8 text-center flex flex-col justify-center"
-    >
-      <div className="mb-6">
-        <div className={`bg-gradient-to-r ${gradient} p-4 rounded-2xl shadow-xl inline-block`}>
-          <Icon className="w-8 h-8 text-white" />
-        </div>
-      </div>
-      <h4 className="font-bold text-white text-xl mb-3">{title}</h4>
-      <p className="text-slate-300 text-base leading-relaxed">{desc}</p>
-    </div>
-  ))}
-</div>
-
+              {bottomFeatures.map(({ icon: Icon, title, desc, gradient, bgGradient, borderGradient }, i) => (
+                <div
+                  key={i}
+                  className={`group relative min-h-[280px] bg-gradient-to-br ${bgGradient} backdrop-blur-sm border ${borderGradient} rounded-2xl p-8 text-center flex flex-col justify-center hover:-translate-y-2 hover:shadow-2xl transition-all duration-300 overflow-hidden`}
+                >
+                  {/* Background Glow */}
+                  <div className={`absolute inset-0 bg-gradient-to-r ${gradient} opacity-0 group-hover:opacity-10 transition-opacity duration-300 rounded-2xl`}></div>
+                  
+                  {/* Content */}
+                  <div className="relative z-10">
+                    <div className="mb-6">
+                      <div className="relative inline-block">
+                        <div className={`absolute inset-0 bg-gradient-to-r ${gradient} opacity-20 rounded-xl blur-sm w-16 h-16`}></div>
+                        <div className={`relative bg-gradient-to-r ${gradient} p-4 rounded-xl shadow-xl group-hover:scale-110 transition-transform duration-300`}>
+                          <Icon className="w-8 h-8 text-white" />
+                        </div>
+                      </div>
+                    </div>
+                    <h4 className="font-bold text-slate-900 text-xl mb-4 leading-tight">{title}</h4>
+                    <p className="text-slate-700 text-base leading-relaxed">{desc}</p>
+                    
+                    {/* Subtle Accent Line */}
+                    <div className={`w-8 h-0.5 bg-gradient-to-r ${gradient} rounded-full mt-4 mx-auto opacity-60 group-hover:opacity-100 transition-opacity`} />
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </div>
 
       <style jsx>{`
         @keyframes float {
-          0%, 100% { transform: translateY(0px); }
-          50% { transform: translateY(-8px); }
+          0%, 100% { transform: translateY(0px) rotate(0deg); }
+          33% { transform: translateY(-6px) rotate(0.5deg); }
+          66% { transform: translateY(-2px) rotate(-0.5deg); }
         }
         .animate-float {
-          animation: float 6s ease-in-out infinite;
+          animation: float 8s ease-in-out infinite;
         }
       `}</style>
     </section>
