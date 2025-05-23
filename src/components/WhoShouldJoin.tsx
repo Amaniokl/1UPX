@@ -26,9 +26,9 @@ const WhoShouldJoin = () => {
     {
       icon: Code,
       text: "Software Developer",
-      gradient: "from-blue-600 to-cyan-600",
-      bgGradient: "from-blue-50/80 to-cyan-50/80",
-      borderGradient: "from-blue-200/60 to-cyan-200/60"
+      gradient: "from-cyan-600 to-blue-600",
+      bgGradient: "from-cyan-50/80 to-blue-50/80",
+      borderGradient: "from-cyan-200/60 to-blue-200/60"
     },
     {
       icon: Video,
@@ -47,23 +47,23 @@ const WhoShouldJoin = () => {
     {
       icon: Palette,
       text: "Designer",
-      gradient: "from-orange-600 to-rose-600",
-      bgGradient: "from-orange-50/80 to-rose-50/80",
-      borderGradient: "from-orange-200/60 to-rose-200/60"
+      gradient: "from-cyan-600 to-blue-600",
+      bgGradient: "from-cyan-50/80 to-blue-50/80",
+      borderGradient: "from-cyan-200/60 to-blue-200/60"
     },
     {
       icon: Monitor,
       text: "UI/UX Designer",
-      gradient: "from-violet-600 to-purple-600",
-      bgGradient: "from-violet-50/80 to-purple-50/80",
-      borderGradient: "from-violet-200/60 to-purple-200/60"
+      gradient: "from-purple-600 to-pink-600",
+      bgGradient: "from-purple-50/80 to-pink-50/80",
+      borderGradient: "from-purple-200/60 to-pink-200/60"
     },
     {
       icon: Briefcase,
       text: "Business Consulting",
-      gradient: "from-amber-600 to-orange-600",
-      bgGradient: "from-amber-50/80 to-orange-50/80",
-      borderGradient: "from-amber-200/60 to-orange-200/60"
+      gradient: "from-emerald-600 to-teal-600",
+      bgGradient: "from-emerald-50/80 to-teal-50/80",
+      borderGradient: "from-emerald-200/60 to-teal-200/60"
     },
     {
       icon: TrendingUp,
@@ -75,23 +75,23 @@ const WhoShouldJoin = () => {
     {
       icon: LineChart,
       text: "Strategic Planning",
-      gradient: "from-green-600 to-emerald-600",
-      bgGradient: "from-green-50/80 to-emerald-50/80",
-      borderGradient: "from-green-200/60 to-emerald-200/60"
+      gradient: "from-purple-600 to-pink-600",
+      bgGradient: "from-purple-50/80 to-pink-50/80",
+      borderGradient: "from-purple-200/60 to-pink-200/60"
     },
     {
       icon: BarChart4,
       text: "Financial Analysis",
-      gradient: "from-red-600 to-pink-600",
-      bgGradient: "from-red-50/80 to-pink-50/80",
-      borderGradient: "from-red-200/60 to-pink-200/60"
+      gradient: "from-emerald-600 to-teal-600",
+      bgGradient: "from-emerald-50/80 to-teal-50/80",
+      borderGradient: "from-emerald-200/60 to-teal-200/60"
     },
     {
       icon: BarChart2,
       text: "Operations Strategy",
-      gradient: "from-indigo-600 to-purple-600",
-      bgGradient: "from-indigo-50/80 to-purple-50/80",
-      borderGradient: "from-indigo-200/60 to-purple-200/60"
+      gradient: "from-cyan-600 to-blue-600",
+      bgGradient: "from-cyan-50/80 to-blue-50/80",
+      borderGradient: "from-cyan-200/60 to-blue-200/60"
     }
   ];
 
@@ -130,27 +130,6 @@ const WhoShouldJoin = () => {
             <radialGradient id="node-gradient-light">
               <stop offset="0%" stopColor="#06b6d4" stopOpacity="0.4" />
               <stop offset="100%" stopColor="#8b5cf6" stopOpacity="0.4" />
-            </radialGradient>
-          </defs>
-        </svg>
-      </div>
-      {/* AI Circuit Pattern Overlay */}
-      <div className="absolute inset-0 pointer-events-none opacity-10">
-        <svg className="w-full h-full" viewBox="0 0 1200 800" fill="none">
-          <path d="M100 200 L300 200 L300 400 L500 400" stroke="url(#circuit-gradient)" strokeWidth="2" />
-          <path d="M800 150 L600 150 L600 350 L400 350" stroke="url(#circuit-gradient)" strokeWidth="2" />
-          <path d="M200 600 L400 600 L400 500 L600 500" stroke="url(#circuit-gradient)" strokeWidth="2" />
-          <circle cx="300" cy="200" r="8" fill="url(#node-gradient)" />
-          <circle cx="600" cy="350" r="8" fill="url(#node-gradient)" />
-          <circle cx="400" cy="500" r="8" fill="url(#node-gradient)" />
-          <defs>
-            <linearGradient id="circuit-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" stopColor="#06b6d4" stopOpacity="0.4" />
-              <stop offset="100%" stopColor="#8b5cf6" stopOpacity="0.4" />
-            </linearGradient>
-            <radialGradient id="node-gradient">
-              <stop offset="0%" stopColor="#06b6d4" />
-              <stop offset="100%" stopColor="#8b5cf6" />
             </radialGradient>
           </defs>
         </svg>
@@ -204,7 +183,7 @@ const WhoShouldJoin = () => {
         <div className="relative group mb-16">
           <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/5 to-purple-500/5 rounded-3xl blur-sm" />
 
-          <div className="relative bg-white/70 backdrop-blur-xl border border-slate-200/60 rounded-3xl p-12 shadow-2xl">
+          <div className="relative bg-white/70 backdrop-blur-xl border border-slate-200/60 rounded-3xl p-12 shadow-2xl overflow-hidden">
             <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-cyan-500 via-blue-500 to-purple-500 rounded-t-3xl" />
 
             {/* Enhanced Introduction */}
@@ -232,24 +211,26 @@ const WhoShouldJoin = () => {
               </p>
             </div>
 
-
             {/* Enhanced Specializations Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
               {specializations.map(({ icon: Icon, text, gradient, bgGradient, borderGradient }, index) => (
-                <div key={index} className="group h-32">
+                <div key={index} className="group h-full">
                   <div className="relative h-full">
                     {/* Glow Effect */}
-                    <div className={`absolute inset-0 bg-gradient-to-r ${gradient} opacity-0 group-hover:opacity-10 rounded-2xl blur-xl transition-all duration-500`} />
+                    <div className={`absolute inset-0 bg-gradient-to-r ${gradient} opacity-0 group-hover:opacity-10 rounded-3xl blur-xl transition-all duration-500`} />
 
                     {/* Main Card */}
                     <div className={`
                       relative h-full flex flex-col justify-center items-center
-                      rounded-2xl p-6
+                      rounded-3xl p-8
                       bg-gradient-to-br ${bgGradient} backdrop-blur-sm
                       border border-gradient-to-r ${borderGradient}
                       shadow-lg group-hover:shadow-xl
                       group-hover:scale-[1.02] transition-all duration-300
+                      overflow-hidden min-h-[140px]
                     `}>
+                      <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-cyan-500 via-blue-500 to-purple-500 rounded-t-3xl" />
+
                       {/* Enhanced Icon Container */}
                       <div className="relative mb-4">
                         <div className={`absolute inset-0 bg-gradient-to-r ${gradient} opacity-20 rounded-xl blur-sm w-12 h-12`} />
@@ -264,54 +245,14 @@ const WhoShouldJoin = () => {
                       </p>
 
                       {/* Subtle Accent Line */}
-                      <div className={`w-8 h-0.5 bg-gradient-to-r ${gradient} rounded-full mt-2 opacity-60 group-hover:opacity-100 transition-opacity`} />
+                      <div className={`w-8 h-0.5 bg-gradient-to-r ${gradient} rounded-full mt-3 opacity-60 group-hover:opacity-100 transition-opacity`} />
                     </div>
                   </div>
                 </div>
               ))}
             </div>
-
-            {/* Bottom Enhancement */}
-            {/* <div className="mt-12 text-center">
-              <div className="inline-flex items-center space-x-2 bg-gradient-to-r from-slate-100/80 to-white/80 backdrop-blur-sm border border-slate-200/60 px-6 py-3 rounded-full shadow-md">
-                <Zap className="w-5 h-5 text-amber-600" />
-                <span className="text-slate-700 font-medium">
-                  Join thousands of professionals already transforming their workflow
-                </span>
-                <Sparkles className="w-5 h-5 text-purple-600" />
-              </div>
-            </div> */}
           </div>
         </div>
-        {/* 
-        {/* Enhanced Call to Action */}
-        {/* <div className="text-center">
-          <div className="relative inline-block max-w-4xl">
-            <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/10 to-cyan-500/10 rounded-3xl blur-lg" />
-            <div className="relative bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-3xl p-10 shadow-xl">
-              <div className="flex items-center justify-center space-x-4 mb-6">
-                <div className="bg-gradient-to-r from-emerald-500 to-cyan-500 p-3 rounded-full shadow-lg">
-                  <Brain className="w-6 h-6 text-white" />
-                </div>
-                <div className="w-12 h-px bg-gradient-to-r from-emerald-500 to-cyan-500" />
-                <div className="bg-gradient-to-r from-cyan-500 to-blue-500 p-3 rounded-full shadow-lg">
-                  <Sparkles className="w-6 h-6 text-white" />
-                </div> */}
-        {/* </div> */}
-        {/*               
-              <h3 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4">
-                Ready to experience{' '}
-                <span className="bg-gradient-to-r from-emerald-600 to-cyan-600 bg-clip-text text-transparent">
-                  AI-powered productivity?
-                </span>
-              </h3>
-              
-              <p className="text-lg text-slate-700 leading-relaxed">
-                Join the future of work where AI amplifies your capabilities and accelerates your success.
-              </p> */}
-        {/* </div> */}
-        {/* </div> */}
-        {/* </div> */}
       </div>
 
       <style jsx>{`

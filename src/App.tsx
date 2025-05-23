@@ -1,37 +1,23 @@
+// App.tsx
 import React from 'react';
-import Navbar from './components/Navbar';
-import Hero from './components/Hero';
-import WhatWeDo from './components/WhatWeDo';
-import WhyWeDo from './components/WhyWeDo';
-import HowWeDo from './components/HowWeDo';
-import Benefits from './components/Benefits';
-import WhoShouldJoin from './components/WhoShouldJoin';
-import CallToAction from './components/CallToAction';
-import SignUpForm from './components/SignUpForm';
-import Footer from './components/Footer';
-import ScrollObserver from './components/ScrollObserver';
-import PrivacyOwnership from './components/Privacy';
-import FloatingChatbot from './components/FloatingChatBot';
-import OurMission from './components/OurMission';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import HomePage from './pages/HomePage';
+import PrivacyPage from './pages/PrivacyPage';
+import './index.css';
+import OurMissionPage from './pages/OurMissionPage';
+
 function App() {
   return (
-    <div className="min-h-screen bg-background">
-      <ScrollObserver>
-        <FloatingChatbot/>
-        <Navbar />
-        <Hero />
-        <WhoShouldJoin />
-        <HowWeDo />
-        {/* <WhatWeDo />
-        <WhyWeDo /> */}
-        <OurMission/>
-        {/* <PrivacyOwnership/> */}
-        <Benefits />
-        {/* <CallToAction /> */}
-        <SignUpForm />
-        <Footer />
-      </ScrollObserver>
-    </div>
+    <Router>
+      <div className="App">
+        <Routes>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/privacy" element={<PrivacyPage />} />
+          {/* Add more routes as needed */}
+          <Route path="/our-mission" element={<OurMissionPage/>}/>
+        </Routes>
+      </div>
+    </Router>
   );
 }
 

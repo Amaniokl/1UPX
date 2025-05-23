@@ -1,4 +1,4 @@
-// src/HomePage.jsx
+// src/pages/HomePage.tsx
 import React from 'react';
 import Navbar from '../components/Navbar';
 import Hero from '../components/Hero';
@@ -23,9 +23,9 @@ function HomePage() {
         <Hero />
         <WhoShouldJoin />
         <HowWeDo />
-        <OurMission />
+        {/* <OurMission /> */}
         <Benefits />
-        <SignUpForm />
+        {/* <SignUpForm /> */}
         <Footer />
       </ScrollObserver>
     </div>

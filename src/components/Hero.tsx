@@ -3,7 +3,7 @@ import { ArrowRight, Cpu, Sparkles, Zap, Bot, Brain, CircuitBoard, Layers, Netwo
 
 const Hero = () => {
   return (
-    <section className="relative overflow-hidden bg-gradient-to-br from-slate-950 via-blue-950 to-slate-950 text-white pt-24 pb-20 md:pt-32 md:pb-28 min-h-screen flex items-center">
+    <section id="hero" className="relative overflow-hidden bg-gradient-to-br from-slate-950 via-blue-950 to-slate-950 text-white pt-24 pb-20 md:pt-32 md:pb-28 min-h-screen flex items-center">
       {/* Refined Background Grid */}
       <div className="absolute inset-0 opacity-30">
         <div className="absolute inset-0" style={{
