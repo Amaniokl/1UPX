@@ -1,7 +1,16 @@
 import React from 'react';
 import { Zap, Github, Twitter, Linkedin, Mail } from 'lucide-react';
-
+import { Link } from 'react-router-dom';
 const Footer = () => {
+  const navLinks = [
+    { label: 'Home', href: '#hero', type: 'section' },
+    { label: 'Who Should Join', href: '#who-should-join', type: 'section' },
+    { label: 'How It Works', href: '#how-we-do-it', type: 'section' },
+    { label: 'Benefits', href: '#benefits', type: 'section' },
+    { label: 'Privacy & Ownership', href: '/privacy', type: 'route' },
+    { label: 'Our Mission', href: '/our-mission', type: 'route' },
+  ];
+  
   return (
     <footer className="bg-gradient-to-br from-primary via-primary-dark to-purple-800 text-white pt-20 pb-10">
       <div className="container max-w-6xl mx-auto px-4">
@@ -11,7 +20,7 @@ const Footer = () => {
           <div className="relative">
             {/* <div className="absolute inset-0 bg-gradient-to-r from-cyan-500 to-purple-600 opacity-50 blur-lg rounded-full group-hover:opacity-75 transition-opacity"></div> */}
             {/* <div className="relative bg-gradient-to-r from-cyan-500 to-purple-600 p-2 rounded-full shadow-lg group-hover:scale-110 transition-transform duration-300"> */}
-              <img src="/images/1UPx Final-01.svg" alt="Company Logo" className="h-10 w-auto" />
+              <img src="/images/1UPx Final-01.png" alt="Company Logo" className="h-10 w-auto" />
             {/* </div> */}
           </div>
             <p className="text-neutral-200 mb-6 leading-relaxed">
@@ -19,10 +28,10 @@ const Footer = () => {
             </p>
             <div className="flex space-x-4 mt-4">
               {[
-                { icon: Twitter, href: '#' },
-                { icon: Linkedin, href: '#' },
-                { icon: Github, href: '#' },
-                { icon: Mail, href: '#' }
+                { icon: Twitter, href: 'https://x.com/team1upx' },
+                { icon: Linkedin, href: 'https://www.linkedin.com/company/1upx-xyz/about/?viewAsMember=true' },
+                // { icon: Github, href: '#' },
+                // { icon: Mail, href: '1upx.contact@gmail.com' }
               ].map(({ icon: Icon, href }, idx) => (
                 <a
                   key={idx}
@@ -39,19 +48,17 @@ const Footer = () => {
           <div>
             <h3 className="text-lg font-semibold mb-4 text-white">Quick Links</h3>
             <ul className="space-y-3 text-neutral-300">
-              {[
-                { label: 'What We Do', href: '#what-we-do' },
-                { label: 'How It Works', href: '#how-we-do-it' },
-                { label: 'Benefits', href: '#benefits' },
-                { label: 'Sign Up', href: '#sign-up' }
-              ].map(({ label, href }) => (
+              {navLinks.map(({ label, href, type }) => (
                 <li key={label}>
-                  <a
-                    href={href}
-                    className="hover:text-white transition-colors duration-200"
-                  >
-                    {label}
-                  </a>
+                  {type === 'route' ? (
+                    <Link to={href} className="hover:text-white transition-colors duration-200">
+                      {label}
+                    </Link>
+                  ) : (
+                    <a href={href} className="hover:text-white transition-colors duration-200">
+                      {label}
+                    </a>
+                  )}
                 </li>
               ))}
             </ul>
@@ -61,7 +68,7 @@ const Footer = () => {
           <div>
             <h3 className="text-lg font-semibold mb-4 text-white">Contact</h3>
             <ul className="space-y-2 text-neutral-300">
-              <li>Email: <a href="mailto:info@1upx.ai" className="hover:text-white">info@1upx.ai</a></li>
+              <li>Email: <a href="mailto:1upx.contact@gmail.com" className="hover:text-white">1upx.contact@gmail.com</a></li>
               <li>San Francisco, CA</li>
             </ul>
             <div className="mt-6">

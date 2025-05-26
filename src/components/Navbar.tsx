@@ -56,7 +56,7 @@ const Navbar = () => {
     switch (screenSize) {
       case 'mobile': return 'h-8 w-auto';
       case 'tablet': return 'h-9 w-auto';
-      default: return 'h-10 w-auto';
+      default: return 'h-12 w-auto';
     }
   };
 
@@ -84,38 +84,41 @@ const Navbar = () => {
   };
 
   // Handle navigation for section links
-  const handleNavigation = (href, isExternal = false) => {
+  const handleNavigation = (href, isExternal = false, scrollToTop = false) => {
     setMobileMenuOpen(false);
-    
+  
     if (href.startsWith('#')) {
-      // If we're not on the homepage, navigate to homepage first
       if (location.pathname !== '/') {
         navigate(`/${href}`);
       } else {
-        // We're on homepage, just scroll to section
         const element = document.querySelector(href);
         if (element) {
           element.scrollIntoView({ behavior: 'smooth' });
         }
       }
     } else if (href.startsWith('/')) {
-      // Regular route navigation
       navigate(href);
+      if (scrollToTop) {
+        // Wait for navigation to complete before scrolling
+        setTimeout(() => {
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }, 50);
+      }
     } else if (isExternal) {
-      // External links
       window.open(href, '_blank', 'noopener,noreferrer');
     }
   };
+  
 
   const navLinks = [
     { label: 'Home', href: '#hero', type: 'section' },
     { label: 'Who Should Join', href: '#who-should-join', type: 'section' },
     { label: 'How It Works', href: '#how-we-do-it', type: 'section' },
     { label: 'Benefits', href: '#benefits', type: 'section' },
-    { label: 'Privacy & Ownership', href: '/privacy', type: 'route' },
-    { label: 'Our Mission', href: '/our-mission', type: 'route' },
-  
+    { label: 'Privacy & Ownership', href: '/privacy', type: 'route', scrollTop: true },
+    { label: 'Our Mission', href: '/our-mission', type: 'route', scrollTop: true },
   ];
+  
 
   // Modified to open popup instead of scrolling to section
   const handleSignUpClick = () => {
@@ -150,7 +153,7 @@ const Navbar = () => {
             <Link to="/" className="group flex items-center space-x-3 relative">
               <div className="relative">
                 <img 
-                  src="images/1UPx Final-01.svg" 
+                  src="images/1UPx Final-01.png" 
                   alt="Company Logo" 
                   className={`${getLogoSize()} transition-all duration-300 group-hover:scale-105`} 
                 />
@@ -164,9 +167,9 @@ const Navbar = () => {
             <nav className={`hidden md:flex items-center ${getNavSpacing()}`}>
               {navLinks.map((link, index) => (
                 link.type === 'route' ? (
-                  <Link
+                  <button
                     key={link.href}
-                    to={link.href}
+                    onClick={() => handleNavigation(link.href, false, link.scrollTop)}
                     className={`group relative text-white/90 font-medium transition-all duration-300 hover:text-white rounded-lg hover:bg-white/10 flex items-center ${
                       screenSize === 'laptop' ? 'px-3 py-2 text-sm' : 'px-4 py-2'
                     }`}
@@ -175,7 +178,7 @@ const Navbar = () => {
                       <span>{link.label}</span>
                     </span>
                     <span className="absolute left-0 bottom-0 h-0.5 w-0 bg-gradient-to-r from-cyan-400 to-purple-500 transition-all duration-300 group-hover:w-full rounded-full" />
-                  </Link>
+                  </button>
                 ) : (
                   <button
                     key={link.href}
