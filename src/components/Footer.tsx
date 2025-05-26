@@ -72,12 +72,12 @@ const Footer = () => {
               <li>San Francisco, CA</li>
             </ul>
             <div className="mt-6">
-              <a
+              {/* <a
                 href="#sign-up"
                 className="inline-block px-5 py-2.5 rounded-full bg-white text-primary font-semibold hover:bg-neutral-100 transition-all"
               >
                 Get Early Access
-              </a>
+              </a> */}
             </div>
           </div>
         </div>
