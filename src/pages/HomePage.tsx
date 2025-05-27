@@ -13,11 +13,13 @@ import Footer from '../components/Footer';
 import ScrollObserver from '../components/ScrollObserver';
 import FloatingChatbot from '../components/FloatingChatBot';
 import OurMission from '../components/OurMission';
+import Ping from '../components/Ping';
 
 function HomePage() {
   return (
     <div className="min-h-screen bg-background">
       <ScrollObserver>
+        <Ping/>
         <FloatingChatbot />
         <Navbar />
         <Hero />

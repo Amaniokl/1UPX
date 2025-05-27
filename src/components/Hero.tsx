@@ -67,7 +67,7 @@ const Hero = () => {
             
             <h1 className="text-5xl md:text-7xl font-black leading-tight mb-8 animate-fade-in-down">
               <span className="bg-gradient-to-r from-white via-cyan-200 to-white bg-clip-text text-transparent">
-                Your Personal
+                {/* Your Personal */}
               </span>
               <br />
               <span className="bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-500 bg-clip-text text-transparent">
