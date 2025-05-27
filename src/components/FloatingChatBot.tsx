@@ -1,11 +1,11 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { MessageCircle, X, Send, Bot, User, Minimize2, Maximize2 } from 'lucide-react';
+import { MessageCircle, X, Send, Bot, User, Minimize2, Maximize2, CheckCircle } from 'lucide-react';
 
 const FloatingChatbot = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
-  const [navbarHeight, setNavbarHeight] = useState(64); // Default navbar height
+  const [navbarHeight, setNavbarHeight] = useState(64);
   const [messages, setMessages] = useState([
     {
       id: 1,
@@ -18,20 +18,17 @@ const FloatingChatbot = () => {
   const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef(null);
 
-  // Check if device is mobile and detect navbar height
   useEffect(() => {
     const checkMobile = () => {
       setIsMobile(window.innerWidth < 768);
     };
     
-    // Try to detect navbar height
     const detectNavbarHeight = () => {
       const navbar = document.querySelector('nav, .navbar, [role="navigation"], header');
       if (navbar) {
         const rect = navbar.getBoundingClientRect();
         setNavbarHeight(rect.height);
       } else {
-        // Fallback based on screen size
         setNavbarHeight(window.innerWidth < 768 ? 56 : 64);
       }
     };
@@ -58,32 +55,140 @@ const FloatingChatbot = () => {
     scrollToBottom();
   }, [messages]);
 
-  // Function to format the response text
-  const formatResponseText = (text) => {
-    if (!text) return '';
+  // Enhanced function to format and parse structured responses
+  const parseAndFormatResponse = (text) => {
+    if (!text) return { type: 'text', content: '' };
     
-    return text
+    // Clean the text first - handle various quote patterns
+    const cleanedText = text
       .replace(/^['"]|['"]$/g, '')
       .replace(/\\n/g, '\n')
-      .replace(/\s+/g, ' ')
-      .replace(/\s*\n\s*/g, '\n')
+      .replace(/\*\*(.*?)\*\*/g, '$1') // Remove **bold** formatting
+      .replace(/\*(.*?)\*/g, '$1')     // Remove *italic* formatting
+      .replace(/''(.*?)''/g, '$1')     // Remove double single quotes
+      .replace(/"(.*?)"/g, '$1')       // Remove double quotes
+      .replace(/`(.*?)`/g, '$1')       // Remove backticks
       .trim();
+
+    // Check if it's a bulleted list (starts with * or -)
+    const bulletPattern = /^\s*[\*\-]\s+/;
+    const lines = cleanedText.split('\n').filter(line => line.trim());
+    
+    // If most lines start with bullets, treat as a list
+    const bulletLines = lines.filter(line => bulletPattern.test(line));
+    if (bulletLines.length > 0 && bulletLines.length >= lines.length * 0.5) {
+      const listItems = lines.map(line => {
+        if (bulletPattern.test(line)) {
+          return {
+            type: 'bullet',
+            text: line.replace(bulletPattern, '').trim()
+          };
+        }
+        return {
+          type: 'text',
+          text: line.trim()
+        };
+      }).filter(item => item.text);
+
+      return { type: 'list', content: listItems };
+    }
+
+    // Check for numbered lists
+    const numberPattern = /^\s*\d+\.\s+/;
+    const numberedLines = lines.filter(line => numberPattern.test(line));
+    if (numberedLines.length > 0 && numberedLines.length >= lines.length * 0.5) {
+      const listItems = lines.map(line => {
+        if (numberPattern.test(line)) {
+          return {
+            type: 'numbered',
+            text: line.replace(numberPattern, '').trim()
+          };
+        }
+        return {
+          type: 'text',
+          text: line.trim()
+        };
+      }).filter(item => item.text);
+
+      return { type: 'numbered-list', content: listItems };
+    }
+
+    // Default to formatted text
+    return { type: 'text', content: cleanedText };
   };
 
-  // Component to render formatted text with line breaks
-  const FormattedText = ({ text }) => {
-    const formattedText = formatResponseText(text);
+  // Component to render formatted responses
+  const FormattedResponse = ({ text }) => {
+    const parsed = parseAndFormatResponse(text);
     
+    if (parsed.type === 'list') {
+      return (
+        <div className="space-y-2">
+          {parsed.content.map((item, index) => (
+            <div key={index}>
+              {item.type === 'bullet' ? (
+                <div className="flex items-start space-x-2">
+                  <CheckCircle className={`flex-shrink-0 mt-0.5 text-cyan-400 ${isMobile ? 'w-3 h-3' : 'w-4 h-4'}`} />
+                  <span className="text-white leading-relaxed">{item.text}</span>
+                </div>
+              ) : (
+                <div className="text-white/90 text-sm font-medium mb-1">{item.text}</div>
+              )}
+            </div>
+          ))}
+        </div>
+      );
+    }
+    
+    if (parsed.type === 'numbered-list') {
+      return (
+        <div className="space-y-2">
+          {parsed.content.map((item, index) => (
+            <div key={index}>
+              {item.type === 'numbered' ? (
+                <div className="flex items-start space-x-3">
+                  <div className={`flex-shrink-0 bg-gradient-to-r from-cyan-500 to-purple-600 text-white rounded-full flex items-center justify-center font-bold ${isMobile ? 'w-5 h-5 text-xs' : 'w-6 h-6 text-sm'}`}>
+                    {index + 1}
+                  </div>
+                  <span className="text-white leading-relaxed">{item.text}</span>
+                </div>
+              ) : (
+                <div className="text-white/90 text-sm font-medium mb-1">{item.text}</div>
+              )}
+            </div>
+          ))}
+        </div>
+      );
+    }
+    
+    // Default text formatting
     return (
-      <div className="whitespace-pre-wrap">
-        {formattedText.split('\n').map((line, index) => (
+      <div className="whitespace-pre-wrap text-white leading-relaxed">
+        {parsed.content.split('\n').map((line, index) => (
           <span key={index}>
             {line}
-            {index < formattedText.split('\n').length - 1 && <br />}
+            {index < parsed.content.split('\n').length - 1 && <br />}
           </span>
         ))}
       </div>
     );
+  };
+
+  // Test the formatting with sample data
+  const handleTestFormatting = () => {
+    const sampleResponse = `* Automates repetitive tasks (research, drafting, analysis).
+* Allows users to focus on high-value work.
+* Creates a personalized AI assistant mirroring the user's work style.
+* Improves efficiency and productivity.`;
+    
+    const testMessage = {
+      id: messages.length + 1,
+      text: sampleResponse,
+      sender: 'bot',
+      timestamp: new Date()
+    };
+    
+    setMessages(prev => [...prev, testMessage]);
   };
 
   const handleSendMessage = async () => {
@@ -149,7 +254,6 @@ const FloatingChatbot = () => {
     }
   };
 
-  // Dynamic positioning and sizing classes
   const getButtonClasses = () => {
     return `fixed z-50 transition-all duration-300 ${
       isMobile 
@@ -181,7 +285,6 @@ const FloatingChatbot = () => {
     return '';
   };
 
-  // Calculate dynamic height for mobile considering navbar
   const getMobileHeight = () => {
     if (isMobile && !isMinimized) {
       const availableHeight = window.innerHeight - navbarHeight;
@@ -197,7 +300,6 @@ const FloatingChatbot = () => {
     return 'h-80 overflow-y-auto p-4 space-y-4 bg-slate-900/50';
   };
 
-  // Get top positioning for mobile to avoid navbar
   const getMobileTopPosition = () => {
     if (isMobile && !isMinimized) {
       return `${navbarHeight}px`;
@@ -207,6 +309,16 @@ const FloatingChatbot = () => {
 
   return (
     <>
+      {/* Test Button for Demo */}
+      {!isOpen && (
+        <button
+          onClick={handleTestFormatting}
+          className="fixed top-4 right-4 z-40 bg-green-600 text-white px-4 py-2 rounded-lg text-sm"
+        >
+          Test Formatting
+        </button>
+      )}
+
       {/* Chat Button */}
       {!isOpen && (
         <div className={getButtonClasses()}>
@@ -219,7 +331,6 @@ const FloatingChatbot = () => {
             <div className="absolute inset-0 rounded-full bg-gradient-to-r from-cyan-400 to-purple-500 opacity-0 group-hover:opacity-50 transition-opacity duration-300 blur"></div>
             <MessageCircle className={`relative z-10 ${isMobile ? 'w-5 h-5' : 'w-6 h-6'}`} />
             
-            {/* Notification dot */}
             <div className={`absolute bg-red-500 rounded-full flex items-center justify-center ${
               isMobile ? '-top-1 -right-1 w-3 h-3' : '-top-1 -right-1 w-4 h-4'
             }`}>
@@ -314,19 +425,21 @@ const FloatingChatbot = () => {
                         )}
                       </div>
                       
-                      <div className={`max-w-[80%] sm:max-w-xs ${
+                      <div className={`max-w-[85%] sm:max-w-xs ${
                         message.sender === 'user' ? 'text-right' : 'text-left'
                       }`}>
-                        <div className={`inline-block p-2 sm:p-3 rounded-xl sm:rounded-2xl ${
+                        <div className={`inline-block p-3 sm:p-4 rounded-xl sm:rounded-2xl ${
                           message.sender === 'user'
                             ? 'bg-gradient-to-r from-cyan-500 to-purple-600 text-white'
                             : 'bg-white/10 text-white border border-white/20'
                         }`}>
-                          <div className={`leading-relaxed ${isMobile ? 'text-xs' : 'text-sm'}`}>
+                          <div className={`leading-relaxed ${isMobile ? 'text-xs' : 'text-sm'} ${
+                            message.sender === 'user' ? 'text-left' : ''
+                          }`}>
                             {message.sender === 'bot' ? (
-                              <FormattedText text={message.text} />
+                              <FormattedResponse text={message.text} />
                             ) : (
-                              <p>{message.text}</p>
+                              <p className="text-white text-left">{message.text}</p>
                             )}
                           </div>
                         </div>
@@ -373,13 +486,15 @@ const FloatingChatbot = () => {
                         onChange={(e) => setInputMessage(e.target.value)}
                         onKeyPress={handleKeyPress}
                         placeholder="Type your message..."
-                        className={`w-full bg-white/10 border border-white/20 rounded-lg sm:rounded-xl px-3 sm:px-4 py-2 sm:py-3 text-white placeholder-white/60 focus:outline-none focus:border-cyan-400 transition-colors resize-none ${
+                        className={`w-full bg-white/10 border border-white/20 rounded-lg sm:rounded-xl px-3 sm:px-4 py-2 sm:py-3 text-white placeholder-white/60 focus:outline-none focus:border-cyan-400 transition-colors resize-none text-left ${
                           isMobile ? 'text-sm' : 'text-base'
                         }`}
                         rows="1"
                         style={{
                           minHeight: isMobile ? '36px' : '44px',
-                          maxHeight: isMobile ? '120px' : '150px'
+                          maxHeight: isMobile ? '120px' : '150px',
+                          textAlign: 'left',
+                          direction: 'ltr'
                         }}
                       />
                     </div>
