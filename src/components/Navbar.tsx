@@ -145,7 +145,7 @@ const Navbar = () => {
         }`}
       >
         {/* Gradient top border */}
-        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-cyan-400 via-purple-500 to-pink-500"></div>
+        {/* <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-cyan-400 via-purple-500 to-pink-500"></div> */}
         
         <div className={`w-full flex items-center justify-between ${getPadding()} relative`}>
           {/* Logo - Extreme Left */}

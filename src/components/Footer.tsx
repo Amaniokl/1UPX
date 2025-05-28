@@ -69,7 +69,7 @@ const Footer = () => {
             <h3 className="text-lg font-semibold mb-4 text-white">Contact</h3>
             <ul className="space-y-2 text-neutral-300">
               <li>Email: <a href="mailto:1upx.contact@gmail.com" className="hover:text-white">1upx.contact@gmail.com</a></li>
-              <li>San Francisco, CA</li>
+              <li>Pune, Maharashtra</li>
             </ul>
             <div className="mt-6">
               {/* <a
@@ -84,7 +84,7 @@ const Footer = () => {
 
         {/* Footer bottom */}
         <div className="pt-6 border-t border-white/20 text-sm text-center text-neutral-400">
-          <p>&copy; 2025 1upX. All rights reserved.</p>
+          <p>&copy; 2025 1upX. Powered by Skynet.</p>
           <div className="mt-3 flex justify-center space-x-6">
             <a href="#" className="hover:text-white transition-colors">Privacy Policy</a>
             <a href="#" className="hover:text-white transition-colors">Terms of Service</a>
