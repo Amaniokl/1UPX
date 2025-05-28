@@ -88,7 +88,7 @@ const WhoShouldJoin = () => {
     },
     {
       icon: BarChart2,
-      text: "Operations Strategy",
+      text: "Business Outreach",
       gradient: "from-cyan-600 to-blue-600",
       bgGradient: "from-cyan-50/80 to-blue-50/80",
       borderGradient: "from-cyan-200/60 to-blue-200/60"
