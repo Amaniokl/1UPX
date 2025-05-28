@@ -32,7 +32,7 @@ const WhoShouldJoin = () => {
     },
     {
       icon: Video,
-      text: "Video Editor",
+      text: "Video Generator",
       gradient: "from-purple-600 to-pink-600",
       bgGradient: "from-purple-50/80 to-pink-50/80",
       borderGradient: "from-purple-200/60 to-pink-200/60"
