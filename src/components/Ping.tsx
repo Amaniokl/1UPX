@@ -6,6 +6,12 @@ const Ping: React.FC = () => {
       .catch(() => {
       });
   }, []);
+
+  useEffect(() => {
+    fetch('https://gemii.onrender.com/')
+      .catch(() => {
+      });
+  }, []);
   return (
     <main>
     </main>
