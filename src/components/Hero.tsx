@@ -83,7 +83,7 @@ const Hero = () => {
 
             {/* Enhanced CTA Buttons */}
             <div className="flex flex-col sm:flex-row justify-center gap-6 animate-fade-in-up mb-16">
-              <button
+              {/* <button
                 onClick={handleOpenSignUp}
                 className="group relative inline-flex items-center justify-center px-8 py-4 rounded-2xl bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-semibold text-lg shadow-2xl hover:shadow-cyan-500/50 transition-all duration-300 hover:scale-105 overflow-hidden"
               >
@@ -92,7 +92,7 @@ const Hero = () => {
                   Start Building Today
                   <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
                 </span>
-              </button>
+              </button> */}
               <a
                 href="#how-we-do-it"
                 className="inline-flex items-center justify-center px-8 py-4 rounded-2xl border border-slate-600 text-slate-300 font-semibold text-lg hover:bg-slate-800/50 hover:border-slate-500 transition-all duration-300 backdrop-blur-sm"
