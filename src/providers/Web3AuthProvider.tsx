@@ -1,4 +1,3 @@
-'use client';
 import { Web3AuthProvider as Web3AuthModalProvider, useWeb3Auth } from "@web3auth/modal-react-hooks";
 import { web3AuthConfig } from "../config/web3AuthConfig";
 import { ReactNode, createContext, useContext, useEffect } from "react";
@@ -25,7 +24,7 @@ function ChainProvider({ children }: { children: ReactNode }) {
         const handleError = (error: any) => {
             if (error?.message?.includes('Session Expired') || error?.message?.includes('Invalid public key')) {
                 console.log('Session expired, redirecting to login...');
-                router.push('/login');
+                // router.push('/login');
             }
         };
 
@@ -57,7 +56,7 @@ function ChainProvider({ children }: { children: ReactNode }) {
             console.error("Error switching chain:", error);
             if (error instanceof Error && 
                 (error.message.includes('Session Expired') || error.message.includes('Invalid public key'))) {
-                router.push('/login');
+                // router.push('/login');
             }
         }
     };
@@ -76,7 +75,7 @@ export function Web3AuthProvider({ children }: { children: ReactNode }) {
         const handleInitError = (error: any) => {
             if (error?.message?.includes('Session Expired') || error?.message?.includes('Invalid public key')) {
                 console.log('Session expired during initialization, redirecting to login...');
-                router.push('/login');
+                // router.push('/login');
             }
         };
 

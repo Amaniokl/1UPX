@@ -4,6 +4,9 @@ import { Button } from "../components/ui/button";
 import { Card, CardContent } from "../components/ui/card";
 import { Label } from "../components/ui/label";
 // import OnboardingStepper from '../components/OnboardingStepper';
+import { useContext } from 'react';
+import { Web3Context, isConnectedState } from '../providers/Web3ContextProvider';
+
 import { useOnboarding } from '../components/context/OnboardingContext';
 import { useNavigate } from 'react-router-dom';
 import { 
@@ -29,7 +32,9 @@ import {
   Hexagon,
   Triangle,
   Circle,
-  Square
+  Square,
+  Loader2,
+  AlertCircle
 } from 'lucide-react';
 
 // Enhanced Input Component
@@ -212,11 +217,43 @@ const SuccessMessage = ({ data }: { data: any }) => (
   </div>
 );
 
+// Error Message Component
+const ErrorMessage = ({ error, onRetry }: { error: string; onRetry: () => void }) => (
+  <div className="animate-in slide-in-from-bottom-4 duration-500">
+    <div className="relative group">
+      <div className="absolute inset-0 bg-gradient-to-r from-red-500/10 to-pink-500/10 rounded-xl blur-sm" />
+      <div className="relative bg-gradient-to-br from-red-50/90 to-pink-50/90 backdrop-blur-sm border border-red-200/60 p-4 rounded-xl shadow-lg">
+        <div className="flex items-start space-x-3">
+          <div className="bg-gradient-to-r from-red-500 to-pink-500 p-2 rounded-lg shadow-lg">
+            <AlertCircle className="w-4 h-4 text-white" />
+          </div>
+          <div className="flex-1 space-y-2">
+            <div>
+              <h4 className="font-semibold text-red-800 text-base mb-1">Submission Failed</h4>
+              <p className="text-red-700 text-xs mb-3">
+                {error}
+              </p>
+              <Button 
+                onClick={onRetry}
+                size="sm"
+                className="bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600 text-white text-xs px-3 py-1 h-7"
+              >
+                Try Again
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+);
+
 export default function OnboardingStep1() {
   // Get context data and methods
   const { data: contextData, setData } = useOnboarding();
   const navigate = useNavigate();
-  
+  const web3Context = useContext(Web3Context);
+  const walletAddress = isConnectedState(web3Context) ? web3Context.address : null;
   // Use context data or initialize with defaults
   const [isCompany, setIsCompany] = useState<null | boolean>(contextData.isCompany ?? null);
   const [formData, setFormData] = useState({
@@ -230,11 +267,15 @@ export default function OnboardingStep1() {
   
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitted, setSubmitted] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [serverError, setServerError] = useState('');
 
   // Update both local state and context when company type changes
   const handleCompanyTypeChange = (value: boolean) => {
     setIsCompany(value);
     setData({ isCompany: value });
+    // Clear server error when user makes changes
+    if (serverError) setServerError('');
   };
 
   // Update both local state and context when form fields change
@@ -251,10 +292,18 @@ export default function OnboardingStep1() {
     if (errors[name]) {
       setErrors({ ...errors, [name]: '' });
     }
+    
+    // Clear server error when user makes changes
+    if (serverError) setServerError('');
   };
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
+    
+    if (isCompany === null) {
+      setServerError('Please select whether you are a company or individual');
+      return false;
+    }
     
     if (isCompany === true) {
       if (!formData.companyName.trim()) {
@@ -270,21 +319,66 @@ export default function OnboardingStep1() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = () => {
-    if (validateForm()) {
-      // Save all form data to context at once
-      setData({
-        isCompany,
-        ...formData
+  const handleSubmit = async () => {
+    if (!validateForm()) return;
+
+    setLoading(true);
+    setServerError('');
+
+    // Prepare payload
+    const payload = {
+      isCompany,
+      user_id: walletAddress,
+      ...formData
+    };
+    console.log(payload)
+
+    try {
+      const response = await fetch('http://localhost:5000/api/user-details/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
       });
-      
+
+      if (!response.ok) {
+        // Try to parse error message from server
+        let errorMessage = 'Failed to submit details';
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.message || errorData.error || errorMessage;
+        } catch {
+          // If response is not JSON, use status text
+          errorMessage = response.statusText || errorMessage;
+        }
+        throw new Error(errorMessage);
+      }
+
+      // Optionally, get response data
+      const responseData = await response.json();
+      console.log('Server response:', responseData);
+
+      // Save all form data to context at once
+      setData(payload);
       setSubmitted(true);
-      
-      // Optional: Navigate to next step after a short delay
+
+      // Navigate to next step after showing success message
       setTimeout(() => {
         navigate('/onboarding2');
       }, 1500);
+
+    } catch (err: any) {
+      console.error('Submission error:', err);
+      setServerError(err.message || 'An unexpected error occurred. Please try again.');
+    } finally {
+      setLoading(false);
     }
+  };
+
+  const handleRetry = () => {
+    setServerError('');
+    setSubmitted(false);
   };
 
   return (
@@ -439,6 +533,7 @@ export default function OnboardingStep1() {
                             placeholder="Enter your company name"
                             theme="cyan"
                             error={errors.companyName}
+                            disabled={loading}
                           />
                         </div>
                         
@@ -451,6 +546,7 @@ export default function OnboardingStep1() {
                           onChange={handleChange}
                           placeholder="https://yourcompany.com"
                           theme="cyan"
+                          disabled={loading}
                         />
                         
                         <FormInput
@@ -462,6 +558,7 @@ export default function OnboardingStep1() {
                           onChange={handleChange}
                           placeholder="LinkedIn company page"
                           theme="cyan"
+                          disabled={loading}
                         />
                         
                         <div className="md:col-span-2">
@@ -474,6 +571,7 @@ export default function OnboardingStep1() {
                             onChange={handleChange}
                             placeholder="@yourcompany or Twitter URL"
                             theme="cyan"
+                            disabled={loading}
                           />
                         </div>
                       </div>
@@ -503,6 +601,7 @@ export default function OnboardingStep1() {
                           placeholder="Enter your full name"
                           theme="purple"
                           error={errors.name}
+                          disabled={loading}
                         />
                         
                         <FormInput
@@ -514,9 +613,15 @@ export default function OnboardingStep1() {
                           onChange={handleChange}
                           placeholder="https://yourportfolio.com"
                           theme="purple"
+                          disabled={loading}
                         />
                       </div>
                     </div>
+                  )}
+
+                  {/* Error Message */}
+                  {serverError && !submitted && (
+                    <ErrorMessage error={serverError} onRetry={handleRetry} />
                   )}
 
                   {/* Submit Button */}
@@ -525,18 +630,29 @@ export default function OnboardingStep1() {
                       <div className="max-w-md mx-auto">
                         <Button 
                           onClick={handleSubmit}
+                          disabled={loading}
                           className={`
                             w-full h-12 text-base font-semibold rounded-xl shadow-lg
                             bg-gradient-to-r ${isCompany ? 'from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600' : 'from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600'}
                             text-white border-0 transition-all duration-300
                             hover:shadow-xl hover:scale-[1.02]
                             group relative overflow-hidden
+                            ${loading ? 'opacity-75 cursor-not-allowed hover:scale-100' : ''}
                           `}
                         >
                           <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700" />
                           <span className="flex items-center justify-center space-x-2 relative z-10">
-                            <span>Continue to Next Step</span>
-                            <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-300" />
+                            {loading ? (
+                              <>
+                                <Loader2 className="w-5 h-5 animate-spin" />
+                                <span>Submitting...</span>
+                              </>
+                            ) : (
+                              <>
+                                <span>Continue to Next Step</span>
+                                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-300" />
+                              </>
+                            )}
                           </span>
                         </Button>
                       </div>
@@ -553,6 +669,7 @@ export default function OnboardingStep1() {
           </div>
         </div>
       </div>
+
 
       <style>{`
         @keyframes float-complex {

@@ -1,10 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import {
-  SignedIn,
-  UserButton,
-  useUser,
-} from '@clerk/clerk-react';
+import { Web3Context, CONNECT_STATES } from '../providers/Web3ContextProvider';
 import {
   Zap,
   Menu,
@@ -13,15 +9,27 @@ import {
   User,
   Shield,
   LogOut,
-  Home
+  Home,
+  ChevronDown,
+  Copy,
+  Check
 } from 'lucide-react';
 
 const OnboardingNavbar = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [screenSize, setScreenSize] = useState('desktop');
+  const [showUserModal, setShowUserModal] = useState(false);
+  const [copied, setCopied] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
-  const { user } = useUser();
+  const web3Context = useContext(Web3Context);
+  
+  const isAuthenticated = web3Context.status === CONNECT_STATES.CONNECTED;
+  const userAddress = isAuthenticated && web3Context.address ? 
+    web3Context.address : '';
+  const shortAddress = userAddress ? 
+    `${userAddress.substring(0, 6)}...${userAddress.substring(userAddress.length - 4)}` : 
+    '';
 
   useEffect(() => {
     const handleResize = () => {
@@ -42,11 +50,15 @@ const OnboardingNavbar = () => {
       if (mobileMenuOpen && !event.target.closest('header')) {
         setMobileMenuOpen(false);
       }
+      
+      if (showUserModal && !event.target.closest('.user-modal') && !event.target.closest('.user-button')) {
+        setShowUserModal(false);
+      }
     };
 
     document.addEventListener('click', handleClickOutside);
     return () => document.removeEventListener('click', handleClickOutside);
-  }, [mobileMenuOpen]);
+  }, [mobileMenuOpen, showUserModal]);
 
   const getLogoSize = () => {
     switch (screenSize) {
@@ -65,49 +77,28 @@ const OnboardingNavbar = () => {
     }
   };
 
-  // Updated UserButton appearance to match Hero.tsx aesthetics
-  const getConsistentUserButtonAppearance = (isMobile = false) => ({
-    elements: {
-      // Avatar styling - consistent with Hero.tsx
-      avatarBox: `${isMobile ? 'w-10 h-10' : screenSize === 'laptop' ? 'w-10 h-10' : 'w-11 h-11'} 
-                  ring-2 ring-cyan-400/30 hover:ring-cyan-400/60 transition-all duration-300 
-                  border-2 border-slate-600/20 bg-slate-900/30 shadow-lg`,
-      
-      // Dropdown menu styling - consistent with Hero.tsx
-      userButtonPopoverCard: 'bg-gradient-to-br from-slate-900 to-slate-950 border-2 border-slate-700/30 shadow-2xl rounded-xl',
-      userButtonPopoverRootBox: 'z-[60]',
-      
-      // Menu items - high contrast and visibility
-      userButtonPopoverActionButton: 'text-white hover:bg-slate-800/60 hover:text-white border-b border-slate-700/50 transition-all duration-200 py-3 px-4',
-      userButtonPopoverActionButtonText: 'text-white font-medium text-sm',
-      userButtonPopoverActionButtonIcon: 'text-white/80 hover:text-white',
-      
-      // Footer styling
-      userButtonPopoverFooter: 'border-t-2 border-slate-700/50 bg-slate-900/60 rounded-b-xl',
-      
-      // User info in dropdown - always visible
-      userPreviewTextContainer: 'text-white py-3 px-4 border-b border-slate-700/50 bg-slate-900/40',
-      userPreviewMainIdentifier: 'text-white font-semibold text-base',
-      userPreviewSecondaryIdentifier: 'text-white/90 text-sm',
-      
-      // Additional elements for better visibility
-      userButtonPopoverActions: 'py-2',
-      userButtonPopoverMain: 'pb-2',
-      
-      // Ensure all text elements are visible
-      userButtonPopoverActionButtonIconBox: 'text-white/80',
-      userButtonPopoverActionButtonIconContainer: 'text-white/80',
-    },
-    variables: {
-      colorPrimary: '#06b6d4', // cyan-500 to match Hero.tsx
-      colorText: '#ffffff',
-      colorTextSecondary: '#f1f5f9',
-      colorBackground: '#0f172a', // slate-950 to match Hero.tsx
-      colorInputBackground: '#1e293b', // slate-800 to match Hero.tsx
-      colorInputText: '#ffffff',
-      colorNeutral: '#ffffff',
+  const handleLogout = async () => {
+    setMobileMenuOpen(false);
+    setShowUserModal(false);
+    try {
+      await web3Context.logout();
+      navigate('/');
+    } catch (error) {
+      console.error('Logout failed:', error);
     }
-  });
+  };
+
+  const copyToClipboard = () => {
+    if (navigator.clipboard && userAddress) {
+      navigator.clipboard.writeText(userAddress);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
+
+  const toggleUserModal = () => {
+    setShowUserModal(!showUserModal);
+  };
 
   return (
     <header
@@ -149,14 +140,62 @@ const OnboardingNavbar = () => {
           <div className="hidden md:flex items-center space-x-4">
             <div className="bg-gradient-to-br from-slate-900/80 via-slate-800/80 to-slate-900/80 backdrop-blur-xl border border-slate-700/50 px-4 py-2 rounded-xl">
               <span className="text-slate-300 font-medium">
-                Welcome, {user?.firstName || 'User'}!
+                Welcome, User!
               </span>
             </div>
             
-            <UserButton 
-              appearance={getConsistentUserButtonAppearance(false)}
-              afterSignOutUrl="/"
-            />
+            {/* User profile button */}
+            <button
+              onClick={toggleUserModal}
+              className="user-button relative group flex items-center justify-center w-11 h-11 rounded-full bg-gradient-to-br from-slate-900/80 via-slate-800/80 to-slate-900/80 backdrop-blur-xl border-2 border-slate-700/50 hover:border-cyan-400/60 transition-all duration-300 shadow-lg"
+            >
+              <User className="w-5 h-5 text-cyan-400" />
+              
+              {/* User modal */}
+              {showUserModal && (
+                <div className="user-modal absolute top-full right-0 mt-2 w-72 bg-gradient-to-br from-slate-900 to-slate-950 border-2 border-slate-700/30 shadow-2xl rounded-xl overflow-hidden z-50">
+                  <div className="p-4 border-b border-slate-700/50 bg-gradient-to-r from-slate-900/50 to-blue-950/50">
+                    <h3 className="text-white font-bold text-lg">Your Wallet</h3>
+                    <div className="mt-2 flex items-center justify-between">
+                      <span className="text-white/90 font-medium text-sm">{shortAddress}</span>
+                      <button 
+                        onClick={copyToClipboard}
+                        className="text-white/70 hover:text-white transition-colors p-1 rounded-md hover:bg-white/10"
+                      >
+                        {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                      </button>
+                    </div>
+                  </div>
+                  
+                  <div className="p-4 space-y-3">
+                    <div className="text-white/80 text-sm">
+                      <p className="mb-2">Connected with Web3Auth</p>
+                      <div className="h-1 w-full bg-white/10 rounded-full overflow-hidden">
+                        <div className="h-full bg-gradient-to-r from-cyan-400 to-blue-500 w-full"></div>
+                      </div>
+                    </div>
+                    
+                    <div className="pt-2">
+                      <button
+                        onClick={() => navigate('/profile')}
+                        className="w-full text-left py-2 px-3 rounded-md text-white hover:bg-slate-800/60 transition-colors flex items-center space-x-2"
+                      >
+                        <User className="w-4 h-4" />
+                        <span>View Profile</span>
+                      </button>
+                      
+                      <button
+                        onClick={handleLogout}
+                        className="w-full text-left py-2 px-3 rounded-md text-red-400 hover:bg-red-500/10 transition-colors flex items-center space-x-2"
+                      >
+                        <LogOut className="w-4 h-4" />
+                        <span>Sign Out</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </button>
           </div>
 
           {/* Mobile Menu Button */}
@@ -199,22 +238,59 @@ const OnboardingNavbar = () => {
               {/* User Info Header */}
               <div className="flex items-center justify-between p-4 bg-gradient-to-r from-slate-900/50 to-blue-950/50">
                 <div className="flex items-center space-x-3">
-                  <UserButton 
-                    appearance={getConsistentUserButtonAppearance(true)}
-                    afterSignOutUrl="/"
-                  />
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-slate-900/80 via-slate-800/80 to-slate-900/80 backdrop-blur-xl border-2 border-slate-700/50 flex items-center justify-center">
+                    <User className="w-5 h-5 text-cyan-400" />
+                  </div>
                   <div className="flex-1">
                     <div className="text-white font-semibold text-sm">
                       Welcome back!
                     </div>
                     <div className="text-white/90 font-medium text-base">
-                      {user?.firstName || 'User'}
+                      User
                     </div>
                     <div className="text-slate-400 text-xs truncate max-w-[200px]">
-                      {user?.primaryEmailAddress?.emailAddress}
+                      {shortAddress}
                     </div>
                   </div>
                 </div>
+              </div>
+              
+              {/* Mobile wallet info */}
+              <div className="p-3 border-t border-slate-700/20">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-slate-300 text-sm font-medium">Wallet Address</span>
+                  <button 
+                    onClick={copyToClipboard}
+                    className="text-cyan-400/70 hover:text-cyan-400 transition-colors p-1 rounded-md hover:bg-slate-800/60"
+                  >
+                    {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                  </button>
+                </div>
+                <div className="text-slate-400 text-xs bg-slate-900/50 p-2 rounded-md overflow-hidden text-ellipsis">
+                  {shortAddress}
+                </div>
+              </div>
+              
+              {/* Mobile action buttons */}
+              <div className="p-3 border-t border-slate-700/20 space-y-2">
+                <button
+                  onClick={() => {
+                    setMobileMenuOpen(false);
+                    navigate('/profile');
+                  }}
+                  className="w-full text-left py-2 px-3 rounded-md text-white hover:bg-slate-800/60 transition-colors flex items-center space-x-2 text-sm"
+                >
+                  <User className="w-4 h-4 text-cyan-400" />
+                  <span>View Profile</span>
+                </button>
+                
+                <button
+                  onClick={handleLogout}
+                  className="w-full text-left py-2 px-3 rounded-md text-red-400 hover:bg-red-500/10 transition-colors flex items-center space-x-2 text-sm"
+                >
+                  <LogOut className="w-4 h-4" />
+                  <span>Sign Out</span>
+                </button>
               </div>
             </div>
             

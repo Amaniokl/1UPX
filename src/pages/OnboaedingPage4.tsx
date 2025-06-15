@@ -1,10 +1,11 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "../components/ui/button";
 import { Card, CardContent } from "../components/ui/card";
 import { Input } from "../components/ui/input";
 import { Textarea } from "../components/ui/textarea";
 import { Label } from "../components/ui/label";
-import OnboardingStepper from '../components/OnboardingStepper';
+import { useOnboarding } from '../components/context/OnboardingContext';
 import { 
   Sparkles, 
   ArrowRight, 
@@ -25,8 +26,15 @@ import {
   FolderOpen,
   Database,
   X,
-  Plus
+  Plus,
+  Workflow
 } from "lucide-react";
+import { useContext } from 'react';
+import { AppCryptoContext } from '../providers/AppCryptoProvider'; // adjust the path as necessary
+
+import { mintNft } from "../utils/nft";
+import { fetchNfts } from "../utils/nft";
+
 
 // Agent Type Selector Component
 const AgentTypeSelector = ({ selectedType, onSelect }: { 
@@ -243,21 +251,107 @@ const CompactKnowledgeUpload = ({
   );
 };
 
+// Selected Job Info Component
+const SelectedJobInfo = ({ job, field }: { job: string; field: string }) => {
+  return (
+    <div className="mb-6 p-4 bg-gradient-to-r from-cyan-50 to-blue-50 border border-cyan-200 rounded-xl shadow-sm">
+      <div className="flex items-start space-x-3">
+        <div className="bg-gradient-to-r from-cyan-500 to-blue-500 p-2 rounded-lg shadow-md">
+          <Workflow className="w-4 h-4 text-white" />
+        </div>
+        <div className="flex-1">
+          <div className="flex items-center space-x-2">
+            <h4 className="font-semibold text-slate-800">Selected Job</h4>
+            <div className="bg-cyan-100 text-cyan-700 text-xs px-2 py-0.5 rounded-full">
+              From {field}
+            </div>
+          </div>
+          <p className="text-sm text-slate-700 mt-1 font-medium">
+            "{job}"
+          </p>
+          <div className="flex items-center mt-2 text-xs text-cyan-600">
+            {/* <Play className="w-3 h-3 mr-1" /> */}
+            <span>Ready to execute</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 // Full Width Prompt Interface Component
-const PromptInterface = () => {
-  const [prompt, setPrompt] = useState("Create a 10 page fundraising deck");
+// Full Width Prompt Interface Component
+const PromptInterface = ({ initialPrompt, selectedJob, selectedJobField }: { 
+  initialPrompt: string;
+  selectedJob?: string;
+  selectedJobField?: string;
+}) => {
+  const [prompt, setPrompt] = useState(initialPrompt);
   const [isProcessing, setIsProcessing] = useState(false);
   const [result, setResult] = useState("");
+  const { skyBrowser } = useContext(AppCryptoContext);
+  const [nftId, setNftId] = useState<string | null>(null);
+
+  // Fetch NFT ID on component mount
+  useEffect(() => {
+    const fetchNftId = async () => {
+      if (skyBrowser) {
+        try {
+          const address = skyBrowser.contractService.selectedAccount;
+          const nfts = await fetchNfts(address, skyBrowser);
+          if (nfts && nfts.length > 0) {
+            const selectedNftId = localStorage.getItem(`selectedNftId-${address}`) || nfts[0];
+            setNftId(selectedNftId);
+          }
+        } catch (error) {
+          console.error("Error fetching NFT ID:", error);
+        }
+      }
+    };
+    
+    fetchNftId();
+  }, [skyBrowser]);
 
   const handleSubmit = async () => {
-    if (!prompt.trim()) return;
+    if (!prompt.trim() || !skyBrowser || !nftId) return;
     
     setIsProcessing(true);
-    // Simulate API call
-    setTimeout(() => {
-      setResult("Generated a comprehensive 10-page fundraising deck with executive summary, market analysis, business model, financial projections, and team overview. The deck includes compelling visuals and data-driven insights tailored to your business context.");
+    
+    try {
+      // Get user authentication payload
+      const userAuthPayload = await skyBrowser.appManager.getUrsulaAuth();
+      
+      // Prepare request body
+      const requestBody = {
+        prompt: prompt,
+        userAuthPayload: userAuthPayload,
+        accountNFT: {
+          collectionID: "0",
+          nftID: nftId
+        }
+      };
+      
+      // Send request to API
+      const response = await fetch("https://knowledgebase-c0n499.stackos.io/natural-request", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(requestBody)
+      });
+      
+      if (!response.ok) {
+        throw new Error(`API request failed with status: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      setResult(data.response || "Request completed successfully");
+    } catch (error) {
+      console.error("Error processing request:", error);
+      setResult(`Error: ${error instanceof Error ? error.message : "Failed to process request"}`);
+    } finally {
       setIsProcessing(false);
-    }, 3000);
+    }
   };
 
   return (
@@ -265,6 +359,10 @@ const PromptInterface = () => {
       {/* Left Column - Prompt Input */}
       <div className="lg:col-span-1 space-y-4">
         <div className="space-y-3">
+          {selectedJob && selectedJobField && (
+            <SelectedJobInfo job={selectedJob} field={selectedJobField} />
+          )}
+          
           <Label htmlFor="prompt" className="text-sm font-semibold text-slate-700">
             Your Prompt
           </Label>
@@ -285,10 +383,10 @@ const PromptInterface = () => {
 
         <Button
           onClick={handleSubmit}
-          disabled={!prompt.trim() || isProcessing}
+          disabled={!prompt.trim() || isProcessing || !nftId}
           className={`
             w-full h-12 rounded-xl font-semibold transition-all duration-300
-            ${prompt.trim() && !isProcessing
+            ${prompt.trim() && !isProcessing && nftId
               ? 'bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white shadow-lg hover:shadow-xl hover:scale-[1.02]'
               : 'bg-slate-300 text-slate-500 cursor-not-allowed'
             }
@@ -338,7 +436,7 @@ const PromptInterface = () => {
                 <CheckCircle className="w-5 h-5 text-emerald-600" />
                 <span className="font-semibold text-emerald-800">Generated Successfully</span>
               </div>
-              <p className="text-slate-700 leading-relaxed">{result}</p>
+              <p className="text-slate-700 leading-relaxed whitespace-pre-line">{result}</p>
               
               {/* Action Buttons */}
               <div className="flex space-x-3 pt-4 border-t border-emerald-200/60">
@@ -369,43 +467,72 @@ const PromptInterface = () => {
   );
 };
 
-export default function OnboardingStep4() {
+
+export default async function OnboardingStep4() {
+  const navigate = useNavigate();
+  const { data: contextData, setData } = useOnboarding();
   const [selectedAgentType, setSelectedAgentType] = useState('type2');
   const [projectFiles, setProjectFiles] = useState<string[]>([]);
   const [agentFiles, setAgentFiles] = useState<string[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { skyBrowser } = useContext(AppCryptoContext);
+  const userAuthPayload = await skyBrowser?.appManager.getUrsulaAuth();
+
+  // Generate initial prompt based on selected job from previous step
+  const initialPrompt = contextData.selectedJob 
+    ? `Execute job: ${contextData.selectedJob}` 
+    : "Create a 10 page fundraising deck";
+
+  const handleComplete = () => {
+    setIsSubmitting(true);
+    
+    // Save data to context
+    setData({
+      agentType: selectedAgentType,
+      projectFiles: projectFiles,
+      agentFiles: agentFiles,
+      setupCompleted: true
+    });
+    
+    // Navigate to dashboard or completion page
+    setTimeout(() => {
+      navigate('/dashboard');
+    }, 1000);
+  };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-purple-50/30 relative overflow-hidden">
-      {/* Enhanced Background Elements */}
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/40 to-purple-50/40 relative overflow-hidden">
+      {/* Background Elements */}
       <div className="absolute inset-0 z-0">
         {/* Grid Pattern */}
-        <div className="absolute inset-0 opacity-[0.03]" style={{
+        <div className="absolute inset-0 opacity-[0.04]" style={{
           backgroundImage: `
-            linear-gradient(rgba(148, 163, 184, 0.4) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(148, 163, 184, 0.4) 1px, transparent 1px)
+            linear-gradient(rgba(59, 130, 246, 0.5) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(59, 130, 246, 0.5) 1px, transparent 1px)
           `,
-          backgroundSize: '40px 40px'
+          backgroundSize: '40px 40px',
+          animation: 'gridMove 20s linear infinite'
         }} />
         
         {/* Floating Orbs */}
-        <div className="absolute top-20 right-20 w-72 h-72 bg-gradient-to-br from-cyan-300/20 to-blue-400/20 rounded-full blur-3xl animate-pulse" />
-        <div className="absolute bottom-20 left-20 w-80 h-80 bg-gradient-to-br from-purple-300/20 to-violet-400/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }} />
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-gradient-to-br from-emerald-300/15 to-teal-400/15 rounded-full blur-2xl animate-pulse" style={{ animationDelay: '4s' }} />
+        <div className="absolute top-24 right-16 w-64 h-64 bg-gradient-to-br from-cyan-400/20 to-blue-500/20 rounded-full blur-3xl animate-pulse-slow" />
+        <div className="absolute bottom-24 left-16 w-56 h-56 bg-gradient-to-br from-purple-400/20 to-violet-500/20 rounded-full blur-3xl animate-pulse-slow" style={{ animationDelay: '3s' }} />
+        <div className="absolute top-1/3 left-1/3 w-48 h-48 bg-gradient-to-br from-emerald-400/15 to-teal-500/15 rounded-full blur-2xl animate-pulse-slow" style={{ animationDelay: '6s' }} />
       </div>
 
       {/* Floating Icons */}
       <div className="absolute inset-0 pointer-events-none z-10">
         {[
-          { icon: Bot, color: "text-cyan-600", bg: "bg-cyan-100/80", border: "border-cyan-200/60", top: "top-24", left: "left-16", delay: "0s" },
-          { icon: Rocket, color: "text-purple-600", bg: "bg-purple-100/80", border: "border-purple-200/60", top: "top-40", right: "right-20", delay: "2s" },
-          { icon: Brain, color: "text-emerald-600", bg: "bg-emerald-100/80", border: "border-emerald-200/60", bottom: "bottom-40", left: "left-20", delay: "4s" },
-          { icon: Zap, color: "text-blue-600", bg: "bg-blue-100/80", border: "border-blue-200/60", bottom: "bottom-24", right: "right-16", delay: "1s" }
+          { icon: Bot, color: "text-cyan-600", bg: "bg-cyan-100/90", border: "border-cyan-300/70", top: "top-28", left: "left-12", delay: "0s" },
+          { icon: Rocket, color: "text-purple-600", bg: "bg-purple-100/90", border: "border-purple-300/70", top: "top-40", right: "right-16", delay: "2s" },
+          { icon: Brain, color: "text-emerald-600", bg: "bg-emerald-100/90", border: "border-emerald-300/70", bottom: "bottom-40", left: "left-16", delay: "4s" },
+          { icon: Zap, color: "text-blue-600", bg: "bg-blue-100/90", border: "border-blue-300/70", bottom: "bottom-28", right: "right-12", delay: "1s" }
         ].map(({ icon: Icon, color, bg, border, delay, ...position }, idx) => (
-          <div key={idx} className={`absolute animate-float hidden lg:block ${Object.entries(position).map(([key, value]) => `${key.split('-')[0]}-${value.split('-')[1]}`).join(' ')}`} style={{ animationDelay: delay }}>
-            <div className="relative">
-              <div className={`absolute inset-0 w-12 h-12 rounded-xl ${bg} blur-sm`} />
-              <div className={`relative ${bg} backdrop-blur-sm border ${border} p-3 rounded-xl shadow-lg`}>
-                <Icon className={`w-6 h-6 ${color}`} />
+          <div key={idx} className={`absolute animate-float-complex hidden lg:block ${Object.entries(position).map(([key, value]) => `${key.split('-')[0]}-${value.split('-')[1]}`).join(' ')}`} style={{ animationDelay: delay }}>
+            <div className="relative group">
+              <div className={`absolute inset-0 w-10 h-10 rounded-xl ${bg} blur-sm opacity-60`} />
+              <div className={`relative ${bg} backdrop-blur-xl border ${border} p-2.5 rounded-xl shadow-lg group-hover:scale-110 transition-all duration-500`}>
+                <Icon className={`w-5 h-5 ${color}`} />
               </div>
             </div>
           </div>
@@ -413,143 +540,185 @@ export default function OnboardingStep4() {
       </div>
 
       <div className="relative z-20 flex flex-col min-h-screen">
-        {/* Header */}
-        <div className="text-center mb-8 px-4 pt-8">
-          <div className="inline-flex items-center justify-center mb-6">
-            <div className="relative">
-              <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/20 to-purple-500/20 rounded-2xl blur-lg w-16 h-16" />
-              <div className="relative bg-gradient-to-r from-cyan-500 to-purple-500 p-4 rounded-2xl shadow-xl">
-                <Sparkles className="w-8 h-8 text-white" />
+        {/* Top Spacing for Navbar */}
+        <div className="h-16" />
+
+        {/* Main Content */}
+        <div className="flex-1 flex flex-col py-8 px-4">
+          {/* Header */}
+          <div className="text-center mb-10 max-w-4xl mx-auto">
+            <div className="inline-flex items-center justify-center mb-6 relative">
+              {/* Glow Effect */}
+              <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/30 to-purple-500/30 rounded-2xl blur-xl w-16 h-16 animate-pulse-slow" />
+              
+              {/* Main Icon Container */}
+              <div className="relative bg-gradient-to-r from-cyan-500 via-blue-500 to-purple-500 p-3 rounded-2xl shadow-xl transform hover:scale-105 transition-all duration-500">
+                <Sparkles className="w-7 h-7 text-white relative z-10" />
+                
+                {/* Orbiting Elements */}
+                <div className="absolute -top-1 -right-1 w-4 h-4 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full animate-bounce" style={{ animationDelay: '0.5s' }} />
+                <div className="absolute -bottom-1 -left-1 w-3 h-3 bg-gradient-to-r from-green-400 to-emerald-500 rounded-full animate-bounce" style={{ animationDelay: '1s' }} />
               </div>
+            </div>
+
+            <h1 className="text-3xl md:text-4xl font-bold mb-4 leading-tight text-slate-900">
+              Test Your{" "}
+              <span className="bg-gradient-to-r from-cyan-600 via-blue-600 to-purple-600 bg-clip-text text-transparent">
+                AI Agent
+              </span>
+            </h1>
+            
+            <p className="text-lg text-slate-600 leading-relaxed max-w-3xl mx-auto">
+              Configure your AI agent and upload knowledge bases to enhance its capabilities. Test it with sample tasks.
+            </p>
+            
+            {/* Divider */}
+            <div className="flex items-center justify-center space-x-3 mt-6">
+              <div className="w-12 h-0.5 bg-gradient-to-r from-transparent to-cyan-500 rounded-full" />
+              <div className="w-6 h-0.5 bg-gradient-to-r from-cyan-500 to-purple-500 rounded-full animate-pulse" />
+              <div className="w-12 h-0.5 bg-gradient-to-r from-purple-500 to-transparent rounded-full" />
             </div>
           </div>
 
-          <h1 className="text-4xl md:text-5xl font-bold mb-4 leading-tight text-slate-900">
-            Test Your{" "}
-            <span className="bg-gradient-to-r from-cyan-600 via-blue-600 to-purple-600 bg-clip-text text-transparent">
-              AI Agent
-            </span>
-          </h1>
-          
-          <p className="text-xl text-slate-600 leading-relaxed max-w-3xl mx-auto">
-            Configure your AI agent and upload knowledge bases to enhance its capabilities. Test it with sample tasks.
-          </p>
-          
-          <div className="w-24 h-1 bg-gradient-to-r from-cyan-500 to-purple-500 rounded-full mx-auto mt-6 opacity-80" />
-        </div>
-
-        {/* Main Content */}
-        <div className="flex-1 px-4 pb-8">
-          <div className="max-w-6xl mx-auto">
-            <div className="relative">
-              <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/10 to-purple-500/10 rounded-3xl blur-sm" />
-              
-              <Card className="relative bg-white/80 backdrop-blur-xl border-0 shadow-2xl rounded-3xl overflow-hidden">
-                <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-cyan-500 via-blue-500 to-purple-500" />
+          {/* Main Content */}
+          <div className="flex-1 pb-8">
+            <div className="max-w-6xl mx-auto">
+              <div className="relative group">
+                {/* Glow Effect */}
+                <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/10 via-blue-500/10 to-purple-500/10 rounded-2xl blur-lg group-hover:blur-xl transition-all duration-500" />
                 
-                <CardContent className="p-8 md:p-12 space-y-8">
-                  {/* Top Row - Agent Configuration and Knowledge Bases */}
-                  <div className="grid lg:grid-cols-2 gap-8">
-                    {/* Left Column - Agent Configuration */}
-                    <div className="space-y-4">
-                      <div className="flex items-center space-x-3 mb-4">
-                        <div className="bg-gradient-to-r from-cyan-500 to-blue-500 p-2 rounded-lg shadow-lg">
-                          <Bot className="w-5 h-5 text-white" />
+                <Card className="relative bg-white/85 backdrop-blur-xl border-0 shadow-xl rounded-2xl overflow-hidden">
+                  {/* Top Border */}
+                  <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-cyan-500 via-blue-500 to-purple-500" />
+                  
+                  <CardContent className="p-6 md:p-8 space-y-8">
+                    {/* Top Row - Agent Configuration and Knowledge Bases */}
+                    <div className="grid lg:grid-cols-2 gap-8">
+                      {/* Left Column - Agent Configuration */}
+                      <div className="space-y-4">
+                        <div className="flex items-center space-x-3 mb-4">
+                          <div className="bg-gradient-to-r from-cyan-500 to-blue-500 p-2 rounded-lg shadow-lg">
+                            <Bot className="w-5 h-5 text-white" />
+                          </div>
+                          <h3 className="text-lg font-semibold text-slate-800">Agent Configuration</h3>
                         </div>
-                        <h3 className="text-lg font-semibold text-slate-800">Agent Configuration</h3>
+                        <AgentTypeSelector 
+                          selectedType={selectedAgentType}
+                          onSelect={setSelectedAgentType}
+                        />
                       </div>
-                      <AgentTypeSelector 
-                        selectedType={selectedAgentType}
-                        onSelect={setSelectedAgentType}
+
+                      {/* Right Column - Knowledge Bases */}
+                      <div className="space-y-4">
+                        <div className="flex items-center space-x-3 mb-4">
+                          <div className="bg-gradient-to-r from-emerald-500 to-teal-500 p-2 rounded-lg shadow-lg">
+                            <Upload className="w-5 h-5 text-white" />
+                          </div>
+                          <h3 className="text-lg font-semibold text-slate-800">Knowledge Bases</h3>
+                        </div>
+                        
+                        <div className="grid grid-cols-2 gap-5">
+                          <CompactKnowledgeUpload
+                            title="Project KB"
+                            icon={FolderOpen}
+                            gradient="from-blue-500 to-cyan-500"
+                            uploadedFiles={projectFiles}
+                            setUploadedFiles={setProjectFiles}
+                          />
+                          
+                          <CompactKnowledgeUpload
+                            title="Agent KB"
+                            icon={Database}
+                            gradient="from-purple-500 to-pink-500"
+                            uploadedFiles={agentFiles}
+                            setUploadedFiles={setAgentFiles}
+                          />
+                        </div>
+                        
+                        {/* Summary */}
+                        {(projectFiles.length > 0 || agentFiles.length > 0) && (
+                          <div className="mt-3 p-3 bg-gradient-to-r from-emerald-50/60 to-teal-50/60 rounded-lg border border-emerald-200/40">
+                            <div className="flex items-center justify-between text-xs">
+                              <span className="text-emerald-700 font-medium">
+                                Total: {projectFiles.length + agentFiles.length} files
+                              </span>
+                              <div className="flex space-x-3 text-emerald-600">
+                                <span>Project: {projectFiles.length}</span>
+                                <span>Agent: {agentFiles.length}</span>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Full Width AI Interaction Section */}
+                    <div className="space-y-4">
+                      <div className="flex items-center space-x-3 mb-6">
+                        <div className="bg-gradient-to-r from-purple-500 to-pink-500 p-2 rounded-lg shadow-lg">
+                          <Zap className="w-5 h-5 text-white" />
+                        </div>
+                        <h3 className="text-lg font-semibold text-slate-800">AI Interaction</h3>
+                      </div>
+                      
+                      <PromptInterface 
+                        initialPrompt={initialPrompt}
+                        selectedJob={contextData.selectedJob}
+                        selectedJobField={contextData.selectedJobField}
                       />
                     </div>
 
-                    {/* Right Column - Knowledge Bases */}
-                    <div className="space-y-4">
-                      <div className="flex items-center space-x-3 mb-4">
-                        <div className="bg-gradient-to-r from-emerald-500 to-teal-500 p-2 rounded-lg shadow-lg">
-                          <Upload className="w-5 h-5 text-white" />
-                        </div>
-                        <h3 className="text-lg font-semibold text-slate-800">Knowledge Bases</h3>
-                      </div>
-                      
-                      <div className="grid grid-cols-2 gap-5">
-                        <CompactKnowledgeUpload
-                          title="Project KB"
-                          icon={FolderOpen}
-                          gradient="from-blue-500 to-cyan-500"
-                          uploadedFiles={projectFiles}
-                          setUploadedFiles={setProjectFiles}
-                        />
-                        
-                        <CompactKnowledgeUpload
-                          title="Agent KB"
-                          icon={Database}
-                          gradient="from-purple-500 to-pink-500"
-                          uploadedFiles={agentFiles}
-                          setUploadedFiles={setAgentFiles}
-                        />
-                      </div>
-                      
-                      {/* Summary */}
-                      {(projectFiles.length > 0 || agentFiles.length > 0) && (
-                        <div className="mt-3 p-3 bg-gradient-to-r from-emerald-50/60 to-teal-50/60 rounded-lg border border-emerald-200/40">
-                          <div className="flex items-center justify-between text-xs">
-                            <span className="text-emerald-700 font-medium">
-                              Total: {projectFiles.length + agentFiles.length} files
-                            </span>
-                            <div className="flex space-x-3 text-emerald-600">
-                              <span>Project: {projectFiles.length}</span>
-                              <span>Agent: {agentFiles.length}</span>
-                            </div>
-                          </div>
-                        </div>
-                      )}
+                    {/* Final Action */}
+                    <div className="pt-8 border-t border-slate-200/60 text-center">
+                      <Button
+                        onClick={handleComplete}
+                        disabled={isSubmitting}
+                        className="h-14 px-8 text-lg font-semibold rounded-xl shadow-lg
+                                 bg-gradient-to-r from-cyan-500 to-purple-500 hover:from-cyan-600 hover:to-purple-600 
+                                 text-white border-0 transition-all duration-300
+                                 hover:shadow-xl hover:scale-[1.02] group relative overflow-hidden"
+                      >
+                        <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700" />
+                        <span className="flex items-center justify-center space-x-2 relative z-10">
+                          <Rocket className="w-5 h-5" />
+                          <span>{isSubmitting ? 'Completing...' : 'Complete Setup'}</span>
+                          <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-300" />
+                        </span>
+                      </Button>
                     </div>
-                  </div>
-
-                  {/* Full Width AI Interaction Section */}
-                  <div className="space-y-4">
-                    <div className="flex items-center space-x-3 mb-6">
-                      <div className="bg-gradient-to-r from-purple-500 to-pink-500 p-2 rounded-lg shadow-lg">
-                        <Zap className="w-5 h-5 text-white" />
-                      </div>
-                      <h3 className="text-lg font-semibold text-slate-800">AI Interaction</h3>
-                    </div>
-                    
-                    <PromptInterface />
-                  </div>
-
-                  {/* Final Action */}
-                  <div className="pt-8 border-t border-slate-200/60 text-center">
-                    <Button
-                      className="h-14 px-8 text-lg font-semibold rounded-xl shadow-lg
-                               bg-gradient-to-r from-cyan-500 to-purple-500 hover:from-cyan-600 hover:to-purple-600 
-                               text-white border-0 transition-all duration-300
-                               hover:shadow-xl hover:scale-[1.02] group"
-                    >
-                      <span className="flex items-center justify-center space-x-2">
-                        <Rocket className="w-5 h-5" />
-                        <span>Complete Setup</span>
-                        <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-300" />
-                      </span>
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
+                  </CardContent>
+                </Card>
+              
+                </div>
             </div>
           </div>
         </div>
       </div>
 
-      <style jsx>{`
-        @keyframes float {
-          0%, 100% { transform: translateY(0px) rotate(0deg); }
-          33% { transform: translateY(-8px) rotate(1deg); }
-          66% { transform: translateY(-4px) rotate(-1deg); }
+      <style>{`
+        @keyframes float-complex {
+          0%, 100% { transform: translateY(0px) rotate(0deg) scale(1); }
+          25% { transform: translateY(-8px) rotate(1deg) scale(1.02); }
+          50% { transform: translateY(-4px) rotate(-0.5deg) scale(1.01); }
+          75% { transform: translateY(-10px) rotate(0.5deg) scale(1.02); }
         }
-        .animate-float {
-          animation: float 10s ease-in-out infinite;
+        
+        @keyframes pulse-slow {
+          0%, 100% { opacity: 0.6; transform: scale(1); }
+          50% { opacity: 0.8; transform: scale(1.02); }
+        }
+        
+        @keyframes gridMove {
+          0% { transform: translate(0, 0); }
+          100% { transform: translate(40px, 40px); }
+        }
+        
+        .animate-float-complex {
+          animation: float-complex 10s ease-in-out infinite;
+        }
+        
+        .animate-pulse-slow {
+          animation: pulse-slow 3s ease-in-out infinite;
         }
       `}</style>
     </div>

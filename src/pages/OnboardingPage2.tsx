@@ -41,10 +41,14 @@ import { useNavigate } from 'react-router-dom';
 import { Card, CardContent } from "../components/ui/card";
 import { Button } from "../components/ui/button";
 import { useOnboarding } from '../components/context/OnboardingContext';
+import { useContext } from 'react';
+import { Web3Context, isConnectedState } from '../providers/Web3ContextProvider';
 
 const OnboardingStep2 = () => {
   const navigate = useNavigate();
   // const { getToken } = useAuth();
+  const web3Context = useContext(Web3Context);
+  const walletAddress = isConnectedState(web3Context) ? web3Context.address : null;
   const { data: contextData, setData } = useOnboarding();
   
   const [selectedFields, setSelectedFields] = useState(contextData.selectedFields || []);

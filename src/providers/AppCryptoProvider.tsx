@@ -1,4 +1,4 @@
-'use client'
+// 'use client'
 import { ReactNode, createContext, useContext, useEffect, useState } from 'react';
 import { ContractTransactionResponse, ContractTransactionReceipt, ethers } from 'ethers';
 import { CONNECT_STATES, Web3Context } from './Web3ContextProvider';
@@ -8,7 +8,7 @@ import SkyEtherContractService from '@decloudlabs/skynet/lib/services/SkyEtherCo
 import toast from 'react-hot-toast';
 import { APICallReturn, APIResponse, ContractAddresses, SkyContractService, SkyEnvConfigBrowser } from '@decloudlabs/skynet/lib/types/types';
 import { useWeb3Auth } from '@web3auth/modal-react-hooks';
-import { AppManager, BalanceSettler, BalanceStore, CollectionNFT, NFT, NFTRoles, ERC20, Subscription, SecondsCostCalculator, NFTMinter, NFTRoles__factory, Subscription__factory, NFTMinter__factory, ERC20__factory, SecondsCostCalculator__factory, AppManager__factory, BalanceSettler__factory, CollectionNFT__factory, NFT__factory, BalanceStore__factory } from '@decloudlabs/skynet/lib/types/contracts';
+import { AppManager, BalanceSettler, BalanceStore, CollectionNFT, NFT, NFTRoles, ERC20, Subscription, SecondsCostCalculator, NFTMinter, NFTRoles__factory, Subscription__factory, NFTMinter__factory, ERC20__factory, SecondsCostCalculator__factory, AppManager__factory, BalanceSettler__factory, CollectionNFT__factory, NFT__factory, BalanceStore__factory, NFTFactory, NFTFactory__factory } from '@decloudlabs/skynet/lib/types/contracts';
 import { chainContracts } from '@decloudlabs/skynet/lib/utils/constants';
 import { apiCallWrapper } from '@decloudlabs/skynet/lib/utils/utils';
 
@@ -47,6 +47,7 @@ export function AppCryptoContextProvider({ children }: Props) {
     provider: ethers.Provider;
     contractAddresses: ContractAddresses;
     signer: ethers.Signer;
+    NFTFactory: NFTFactory;
 
     constructor(chainID: keyof typeof chainContracts) {
       const contractAddresses = chainContracts[chainID];
@@ -66,7 +67,7 @@ export function AppCryptoContextProvider({ children }: Props) {
       this.Subscription = empty;
       this.SecondsCostCalculator = empty;
       this.NFTMinter = empty;
-
+      this.NFTFactory = empty;
       this.provider = empty;
       this.signer = empty;
       this.selectedAccount = empty;
@@ -117,6 +118,11 @@ export function AppCryptoContextProvider({ children }: Props) {
 
       this.NFTMinter = NFTMinter__factory.connect(
         contractAddresses.AgentNFTMinter,
+        signer
+      );
+
+      this.NFTFactory = NFTFactory__factory.connect(
+        contractAddresses.NFTFactory,
         signer
       );
     };
@@ -211,4 +217,3 @@ export function AppCryptoContextProvider({ children }: Props) {
     </AppCryptoContext.Provider>
   );
 }
-

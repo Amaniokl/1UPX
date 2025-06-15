@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { Zap, Menu, X, Sparkles, ExternalLink, User, LogOut } from 'lucide-react';
+import { Zap, Menu, X, Sparkles, ExternalLink, User, LogOut, Copy, Check, ChevronDown } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Web3Context, CONNECT_STATES } from '../providers/Web3ContextProvider';
 
@@ -7,13 +7,17 @@ const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [screenSize, setScreenSize] = useState('desktop');
+  const [showUserModal, setShowUserModal] = useState(false);
+  const [copied, setCopied] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
   const web3Context = useContext(Web3Context);
   
   const isAuthenticated = web3Context.status === CONNECT_STATES.CONNECTED;
   const userAddress = isAuthenticated && web3Context.address ? 
-    `${web3Context.address.substring(0, 6)}...${web3Context.address.substring(web3Context.address.length - 4)}` : 
+    web3Context.address : '';
+  const shortAddress = userAddress ? 
+    `${userAddress.substring(0, 6)}...${userAddress.substring(userAddress.length - 4)}` : 
     '';
 
   useEffect(() => {
@@ -41,10 +45,15 @@ const Navbar = () => {
       if (mobileMenuOpen && !event.target.closest('header')) {
         setMobileMenuOpen(false);
       }
+      
+      if (showUserModal && !event.target.closest('.user-modal') && !event.target.closest('.user-button')) {
+        setShowUserModal(false);
+      }
     };
 
     const handleScroll = () => {
       if (mobileMenuOpen) setMobileMenuOpen(false);
+      if (showUserModal) setShowUserModal(false);
     };
 
     document.addEventListener('click', handleClickOutside);
@@ -54,7 +63,7 @@ const Navbar = () => {
       document.removeEventListener('click', handleClickOutside);
       window.removeEventListener('scroll', handleScroll);
     };
-  }, [mobileMenuOpen]);
+  }, [mobileMenuOpen, showUserModal]);
 
   const getLogoSize = () => {
     switch (screenSize) {
@@ -89,6 +98,7 @@ const Navbar = () => {
 
   const handleNavigation = (href, isExternal = false, scrollToTop = false) => {
     setMobileMenuOpen(false);
+    setShowUserModal(false);
   
     if (href.startsWith('#')) {
       if (location.pathname !== '/') {
@@ -122,17 +132,31 @@ const Navbar = () => {
 
   const handleLogin = () => {
     setMobileMenuOpen(false);
+    setShowUserModal(false);
     navigate('/login');
   };
 
   const handleLogout = async () => {
     setMobileMenuOpen(false);
+    setShowUserModal(false);
     try {
       await web3Context.logout();
       navigate('/');
     } catch (error) {
       console.error('Logout failed:', error);
     }
+  };
+
+  const copyToClipboard = () => {
+    if (navigator.clipboard && userAddress) {
+      navigator.clipboard.writeText(userAddress);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
+
+  const toggleUserModal = () => {
+    setShowUserModal(!showUserModal);
   };
 
   return (
@@ -212,27 +236,63 @@ const Navbar = () => {
                     </span>
                   </button>
                 ) : (
-                  <div className="flex items-center space-x-3">
-                    {/* User address display */}
-                    <span className="text-white font-semibold text-sm hidden lg:block bg-white/15 px-4 py-2 rounded-lg backdrop-blur-sm border border-white/30 shadow-sm">
-                      {userAddress}
-                    </span>
-                    
-                    {/* Logout button */}
+                  <div className="flex items-center space-x-3 relative">
+                    {/* User profile button */}
                     <button
-                      onClick={handleLogout}
-                      className={`group relative rounded-full bg-gradient-to-r from-red-500 to-orange-600 text-white font-bold shadow-lg hover:shadow-red-500/50 transition-all duration-300 hover:scale-105 ${
-                        screenSize === 'laptop' ? 'px-3 py-1.5 text-xs' : 'px-4 py-2 text-sm'
-                      }`}
+                      onClick={toggleUserModal}
+                      className="user-button group flex items-center space-x-2 bg-white/15 px-4 py-2 rounded-lg backdrop-blur-sm border border-white/30 shadow-sm hover:bg-white/20 transition-all duration-300"
                     >
-                      <div className="absolute inset-0 rounded-full bg-gradient-to-r from-red-400 to-orange-500 opacity-0 group-hover:opacity-50 transition-opacity duration-300 blur"></div>
-                      <span className="relative flex items-center space-x-1">
-                        <span>Logout</span>
-                        <LogOut className={`group-hover:translate-x-0.5 transition-transform ${
-                          screenSize === 'laptop' ? 'w-3 h-3' : 'w-4 h-4'
-                        }`} />
-                      </span>
+                      <div className="w-8 h-8 rounded-full bg-gradient-to-r from-purple-500 to-cyan-500 flex items-center justify-center">
+                        <User className="w-4 h-4 text-white" />
+                      </div>
+                      <span className="text-white font-medium text-sm">My Account</span>
+                      <ChevronDown className={`w-4 h-4 text-white transition-transform duration-300 ${showUserModal ? 'rotate-180' : ''}`} />
                     </button>
+                    
+                    {/* User modal */}
+                    {showUserModal && (
+                      <div className="user-modal absolute top-full right-0 mt-2 w-72 bg-slate-800/98 backdrop-blur-xl border-2 border-purple-500/40 shadow-2xl rounded-xl overflow-hidden z-50">
+                        <div className="p-4 border-b border-white/20 bg-gradient-to-r from-purple-600/20 to-cyan-600/20">
+                          <h3 className="text-white font-bold text-lg">Your Wallet</h3>
+                          <div className="mt-2 flex items-center justify-between">
+                            <span className="text-white/90 font-medium text-sm">{shortAddress}</span>
+                            <button 
+                              onClick={copyToClipboard}
+                              className="text-white/70 hover:text-white transition-colors p-1 rounded-md hover:bg-white/10"
+                            >
+                              {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                            </button>
+                          </div>
+                        </div>
+                        
+                        <div className="p-4 space-y-3">
+                          <div className="text-white/80 text-sm">
+                            <p className="mb-2">Connected with Web3Auth</p>
+                            <div className="h-1 w-full bg-white/10 rounded-full overflow-hidden">
+                              <div className="h-full bg-gradient-to-r from-cyan-400 to-purple-500 w-full"></div>
+                            </div>
+                          </div>
+                          
+                          <div className="pt-2">
+                            <button
+                              onClick={() => navigate('/profile')}
+                              className="w-full text-left py-2 px-3 rounded-md text-white hover:bg-white/10 transition-colors flex items-center space-x-2"
+                            >
+                              <User className="w-4 h-4" />
+                              <span>View Profile</span>
+                            </button>
+                            
+                            <button
+                              onClick={handleLogout}
+                              className="w-full text-left py-2 px-3 rounded-md text-red-400 hover:bg-red-500/10 transition-colors flex items-center space-x-2"
+                            >
+                              <LogOut className="w-4 h-4" />
+                              <span>Sign Out</span>
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
@@ -328,20 +388,38 @@ const Navbar = () => {
                   <div className="space-y-3">
                     {/* User Info */}
                     <div className="bg-white/15 rounded-xl border border-white/30 backdrop-blur-sm shadow-sm overflow-hidden">
-                      <div className="flex items-center justify-between p-4 bg-gradient-to-r from-purple-600/20 to-cyan-600/20">
-                        <div className="flex items-center space-x-3">
-                          <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
-                            <User className="w-5 h-5 text-white" />
-                          </div>
-                          <div className="flex-1">
-                            <div className="text-white font-semibold text-sm">
-                              Connected Wallet
-                            </div>
-                            <div className="text-white/90 font-medium text-base">
-                              {userAddress}
+                      <div className="p-4 bg-gradient-to-r from-purple-600/20 to-cyan-600/20">
+                        <h3 className="text-white font-bold text-sm mb-1">Your Wallet</h3>
+                        <div className="flex items-center justify-between">
+                          <span className="text-white/90 font-medium text-sm">{shortAddress}</span>
+                          <button 
+                            onClick={copyToClipboard}
+                            className="text-white/70 hover:text-white transition-colors p-1 rounded-md hover:bg-white/10"
+                          >
+                            {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                          </button>
+                        </div>
+                        <div className="mt-2">
+                          <div className="text-white/80 text-xs">
+                            <p className="mb-1">Connected with Web3Auth</p>
+                            <div className="h-1 w-full bg-white/10 rounded-full overflow-hidden">
+                              <div className="h-full bg-gradient-to-r from-cyan-400 to-purple-500 w-full"></div>
                             </div>
                           </div>
                         </div>
+                      </div>
+                      
+                      <div className="p-2">
+                        <button
+                          onClick={() => {
+                            setMobileMenuOpen(false);
+                            navigate('/profile');
+                          }}
+                          className="w-full text-left py-2 px-3 rounded-md text-white hover:bg-white/10 transition-colors flex items-center space-x-2 text-sm"
+                        >
+                          <User className="w-4 h-4" />
+                          <span>View Profile</span>
+                        </button>
                       </div>
                     </div>
                     
