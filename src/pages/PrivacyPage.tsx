@@ -1,6 +1,6 @@
 // src/pages/PrivacyPage.tsx
 import React from 'react';
-import Navbar from '../components/Navbar';
+// import Navbar from '../components/Navbar';
 import PrivacyOwnership from '../components/Privacy';
 import Footer from '../components/Footer';
 import ScrollObserver from '../components/ScrollObserver';
@@ -11,7 +11,7 @@ function PrivacyPage() {
     <div className="min-h-screen bg-background">
       <ScrollObserver>
         <FloatingChatbot />
-        <Navbar />
+        {/* <Navbar /> */}
         <PrivacyOwnership />
         <Footer />
       </ScrollObserver>

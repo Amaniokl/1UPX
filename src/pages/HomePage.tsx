@@ -2,8 +2,8 @@
 import React from 'react';
 import Navbar from '../components/Navbar';
 import Hero from '../components/Hero';
-// import WhatWeDo from '../components/WhatWeDo';
-// import WhyWeDo from '../components/WhyWeDo';
+import WhatWeDo from '../components/WhatWeDo';
+import WhyWeDo from '../components/WhyWeDo';
 import HowWeDo from '../components/HowWeDo';
 import Benefits from '../components/Benefits';
 import WhoShouldJoin from '../components/WhoShouldJoin';

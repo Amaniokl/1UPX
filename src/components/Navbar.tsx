@@ -1,26 +1,20 @@
-import React, { useState, useEffect } from 'react';
-import { Zap, Menu, X, Sparkles, ExternalLink, User } from 'lucide-react';
+import React, { useState, useEffect, useContext } from 'react';
+import { Zap, Menu, X, Sparkles, ExternalLink, User, LogOut } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import {
-  SignedIn,
-  SignedOut,
-  SignInButton,
-  SignUpButton,
-  SignIn,
-  SignUp,
-  UserButton,
-  useUser,
-} from '@clerk/clerk-react';
+import { Web3Context, CONNECT_STATES } from '../providers/Web3ContextProvider';
 
 const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [screenSize, setScreenSize] = useState('desktop');
-  const [showAuthModal, setShowAuthModal] = useState(false);
-  const [authMode, setAuthMode] = useState('signup');
   const location = useLocation();
   const navigate = useNavigate();
-  const { user } = useUser();
+  const web3Context = useContext(Web3Context);
+  
+  const isAuthenticated = web3Context.status === CONNECT_STATES.CONNECTED;
+  const userAddress = isAuthenticated && web3Context.address ? 
+    `${web3Context.address.substring(0, 6)}...${web3Context.address.substring(web3Context.address.length - 4)}` : 
+    '';
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 10);
@@ -61,20 +55,6 @@ const Navbar = () => {
       window.removeEventListener('scroll', handleScroll);
     };
   }, [mobileMenuOpen]);
-
-  // Hide body scrollbar when modal is open
-  useEffect(() => {
-    if (showAuthModal) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = 'unset';
-    }
-    
-    // Cleanup on unmount
-    return () => {
-      document.body.style.overflow = 'unset';
-    };
-  }, [showAuthModal]);
 
   const getLogoSize = () => {
     switch (screenSize) {
@@ -140,63 +120,20 @@ const Navbar = () => {
     { label: 'Our Mission', href: '/our-mission', type: 'route', scrollTop: true },
   ];
 
-  const handleSignUpClick = () => {
+  const handleLogin = () => {
     setMobileMenuOpen(false);
-    setAuthMode('signup');
-    setShowAuthModal(true);
+    navigate('/login');
   };
 
-  const handleSignInClick = () => {
+  const handleLogout = async () => {
     setMobileMenuOpen(false);
-    setAuthMode('signin');
-    setShowAuthModal(true);
-  };
-
-  const closeAuthModal = () => {
-    setShowAuthModal(false);
-  };
-
-  // Consistent UserButton appearance for both desktop and mobile
-  const getConsistentUserButtonAppearance = (isMobile = false) => ({
-    elements: {
-      // Avatar styling - consistent across all views
-      avatarBox: `${isMobile ? 'w-10 h-10' : screenSize === 'laptop' ? 'w-10 h-10' : 'w-12 h-12'} ring-2 ring-white/50 hover:ring-purple-400 transition-all duration-300 border-2 border-white/30 bg-white/20 backdrop-blur-sm shadow-lg`,
-      
-      // Dropdown menu styling - consistent
-      userButtonPopoverCard: 'bg-slate-800/98 backdrop-blur-xl border-2 border-purple-500/40 shadow-2xl rounded-xl',
-      userButtonPopoverRootBox: 'z-[60]',
-      
-      // Menu items - high contrast and visibility
-      userButtonPopoverActionButton: 'text-white hover:bg-purple-600/60 hover:text-white border-b border-white/20 transition-all duration-200 py-3 px-4',
-      userButtonPopoverActionButtonText: 'text-white font-medium text-sm',
-      userButtonPopoverActionButtonIcon: 'text-white/80 hover:text-white',
-      
-      // Footer styling
-      userButtonPopoverFooter: 'border-t-2 border-white/30 bg-slate-700/60 rounded-b-xl',
-      
-      // User info in dropdown - always visible
-      userPreviewTextContainer: 'text-white py-3 px-4 border-b border-white/20 bg-slate-700/40',
-      userPreviewMainIdentifier: 'text-white font-semibold text-base',
-      userPreviewSecondaryIdentifier: 'text-white/90 text-sm',
-      
-      // Additional elements for better visibility
-      userButtonPopoverActions: 'py-2',
-      userButtonPopoverMain: 'pb-2',
-      
-      // Ensure all text elements are visible
-      userButtonPopoverActionButtonIconBox: 'text-white/80',
-      userButtonPopoverActionButtonIconContainer: 'text-white/80',
-    },
-    variables: {
-      colorPrimary: '#8b5cf6',
-      colorText: '#ffffff',
-      colorTextSecondary: '#f1f5f9',
-      colorBackground: '#1e293b',
-      colorInputBackground: '#334155',
-      colorInputText: '#ffffff',
-      colorNeutral: '#ffffff',
+    try {
+      await web3Context.logout();
+      navigate('/');
+    } catch (error) {
+      console.error('Logout failed:', error);
     }
-  });
+  };
 
   return (
     <>
@@ -261,9 +198,9 @@ const Navbar = () => {
               
               {/* Desktop Authentication Section */}
               <div className="flex items-center space-x-3 ml-4">
-                <SignedOut>
+                {!isAuthenticated ? (
                   <button
-                    onClick={handleSignUpClick}
+                    onClick={handleLogin}
                     className={`group relative rounded-full bg-gradient-to-r from-cyan-500 to-purple-600 text-white font-bold shadow-lg hover:shadow-cyan-500/50 transition-all duration-300 hover:scale-105 ${getButtonSize()}`}
                   >
                     <div className="absolute inset-0 rounded-full bg-gradient-to-r from-cyan-400 to-purple-500 opacity-0 group-hover:opacity-50 transition-opacity duration-300 blur"></div>
@@ -274,22 +211,30 @@ const Navbar = () => {
                       }`} />
                     </span>
                   </button>
-                </SignedOut>
-
-                <SignedIn>
+                ) : (
                   <div className="flex items-center space-x-3">
-                    {/* Welcome text - always visible with consistent styling */}
+                    {/* User address display */}
                     <span className="text-white font-semibold text-sm hidden lg:block bg-white/15 px-4 py-2 rounded-lg backdrop-blur-sm border border-white/30 shadow-sm">
-                      Welcome, {user?.firstName || 'User'}!
+                      {userAddress}
                     </span>
                     
-                    {/* UserButton with consistent styling */}
-                    <UserButton 
-                      appearance={getConsistentUserButtonAppearance(false)}
-                      afterSignOutUrl="/"
-                    />
+                    {/* Logout button */}
+                    <button
+                      onClick={handleLogout}
+                      className={`group relative rounded-full bg-gradient-to-r from-red-500 to-orange-600 text-white font-bold shadow-lg hover:shadow-red-500/50 transition-all duration-300 hover:scale-105 ${
+                        screenSize === 'laptop' ? 'px-3 py-1.5 text-xs' : 'px-4 py-2 text-sm'
+                      }`}
+                    >
+                      <div className="absolute inset-0 rounded-full bg-gradient-to-r from-red-400 to-orange-500 opacity-0 group-hover:opacity-50 transition-opacity duration-300 blur"></div>
+                      <span className="relative flex items-center space-x-1">
+                        <span>Logout</span>
+                        <LogOut className={`group-hover:translate-x-0.5 transition-transform ${
+                          screenSize === 'laptop' ? 'w-3 h-3' : 'w-4 h-4'
+                        }`} />
+                      </span>
+                    </button>
                   </div>
-                </SignedIn>
+                )}
               </div>
             </nav>
 
@@ -365,9 +310,9 @@ const Navbar = () => {
               
               {/* Mobile Authentication - Consistent with Desktop */}
               <div className={`border-t border-white/10 ${screenSize === 'mobile' ? 'pt-3' : 'pt-4'}`}>
-                <SignedOut>
+                {!isAuthenticated ? (
                   <button
-                    onClick={handleSignUpClick}
+                    onClick={handleLogin}
                     className={`group relative block w-full text-center rounded-xl bg-gradient-to-r from-cyan-500 to-purple-600 text-white font-bold shadow-lg hover:shadow-cyan-500/50 transition-all duration-300 ${
                       screenSize === 'mobile' ? 'px-4 py-3 text-sm' : 'px-6 py-4'
                     }`}
@@ -375,37 +320,44 @@ const Navbar = () => {
                     <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-cyan-400 to-purple-500 opacity-0 group-hover:opacity-50 transition-opacity duration-300 blur"></div>
                     <span className="relative flex items-center justify-center space-x-2">
                       <Sparkles className={screenSize === 'mobile' ? 'w-4 h-4' : 'w-5 h-5'} />
-                      <span>SignIn</span>
+                      <span>Sign In</span>
                       <Sparkles className={screenSize === 'mobile' ? 'w-4 h-4' : 'w-5 h-5'} />
                     </span>
                   </button>
-                </SignedOut>
-
-                <SignedIn>
-                  {/* Mobile User Section - Consistent Styling */}
-                  <div className="bg-white/15 rounded-xl border border-white/30 backdrop-blur-sm shadow-sm overflow-hidden">
-                    {/* User Info Header */}
-                    <div className="flex items-center justify-between p-4 bg-gradient-to-r from-purple-600/20 to-cyan-600/20">
-                      <div className="flex items-center space-x-3">
-                        <UserButton 
-                          appearance={getConsistentUserButtonAppearance(true)}
-                          afterSignOutUrl="/"
-                        />
-                        <div className="flex-1">
-                          <div className="text-white font-semibold text-sm">
-                            Welcome back!
+                ) : (
+                  <div className="space-y-3">
+                    {/* User Info */}
+                    <div className="bg-white/15 rounded-xl border border-white/30 backdrop-blur-sm shadow-sm overflow-hidden">
+                      <div className="flex items-center justify-between p-4 bg-gradient-to-r from-purple-600/20 to-cyan-600/20">
+                        <div className="flex items-center space-x-3">
+                          <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
+                            <User className="w-5 h-5 text-white" />
                           </div>
-                          <div className="text-white/90 font-medium text-base">
-                            {user?.firstName || 'User'}
-                          </div>
-                          <div className="text-white/70 text-xs truncate max-w-[200px]">
-                            {user?.primaryEmailAddress?.emailAddress}
+                          <div className="flex-1">
+                            <div className="text-white font-semibold text-sm">
+                              Connected Wallet
+                            </div>
+                            <div className="text-white/90 font-medium text-base">
+                              {userAddress}
+                            </div>
                           </div>
                         </div>
                       </div>
                     </div>
+                    
+                    {/* Logout Button */}
+                    <button
+                      onClick={handleLogout}
+                      className="group relative block w-full text-center rounded-xl bg-gradient-to-r from-red-500 to-orange-600 text-white font-bold shadow-lg hover:shadow-red-500/50 transition-all duration-300 py-3"
+                    >
+                      <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-red-400 to-orange-500 opacity-0 group-hover:opacity-50 transition-opacity duration-300 blur"></div>
+                      <span className="relative flex items-center justify-center space-x-2">
+                        <LogOut className="w-4 h-4" />
+                        <span>Sign Out</span>
+                      </span>
+                    </button>
                   </div>
-                </SignedIn>
+                )}
               </div>
             </nav>
           </div>
@@ -439,111 +391,6 @@ const Navbar = () => {
           />
         )}
       </header>
-
-      {/* Auth Modal - No Scrollbar */}
-      {showAuthModal && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-          <div 
-            className="absolute inset-0 bg-black/70 backdrop-blur-md"
-            onClick={closeAuthModal}
-          />
-          
-          {/* Modal Container - Removed overflow-auto and max-h constraints */}
-          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md">
-            <button
-              onClick={closeAuthModal}
-              className="absolute top-4 right-4 z-10 p-2 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 hover:text-gray-800 transition-colors"
-            >
-              <X className="w-5 h-5" />
-            </button>
-            
-            {/* Content Container - Optimized padding and spacing */}
-            <div className="px-6 py-8">
-              {authMode === 'signup' ? (
-                <div>
-                  <div className="text-center mb-4">
-                    <h2 className="text-xl font-bold text-gray-900 mb-1">Create Account</h2>
-                    <p className="text-gray-600 text-sm">Join us and get started today!</p>
-                  </div>
-                  <SignUp
-                    appearance={{
-                      elements: {
-                        formButtonPrimary: 'bg-gradient-to-r from-cyan-500 to-purple-600 hover:from-cyan-600 hover:to-purple-700 text-white font-semibold',
-                        card: 'bg-transparent shadow-none',
-                        headerTitle: 'hidden',
-                        headerSubtitle: 'hidden',
-                        socialButtonsBlockButton: 'border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400',
-                        formFieldInput: 'bg-white border-gray-300 text-gray-900 focus:border-purple-500 focus:ring-purple-500',
-                        formFieldLabel: 'text-gray-700 font-medium',
-                        footerActionLink: 'text-purple-600 hover:text-purple-700 font-medium',
-                        dividerLine: 'bg-gray-300',
-                        dividerText: 'text-gray-500',
-                        formFieldErrorText: 'text-red-600',
-                        identityPreviewText: 'text-gray-700',
-                        formHeaderTitle: 'text-gray-900',
-                        formHeaderSubtitle: 'text-gray-600',
-                        // Remove any scrollbar styling
-                        rootBox: 'overflow-visible',
-                        cardBox: 'overflow-visible',
-                        main: 'overflow-visible',
-                      }
-                    }}
-                    redirectUrl={window.location.origin}
-                  />
-                  <div className="text-center mt-3">
-                    <button
-                      onClick={() => setAuthMode('signin')}
-                      className="text-purple-600 hover:text-purple-700 text-sm font-medium"
-                    >
-                      Already have an account? Sign in
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                <div>
-                  <div className="text-center mb-4">
-                    <h2 className="text-xl font-bold text-gray-900 mb-1">Welcome Back</h2>
-                    <p className="text-gray-600 text-sm">Sign in to your account</p>
-                  </div>
-                  <SignIn
-                    appearance={{
-                      elements: {
-                        formButtonPrimary: 'bg-gradient-to-r from-cyan-500 to-purple-600 hover:from-cyan-600 hover:to-purple-700 text-white font-semibold',
-                        card: 'bg-transparent shadow-none',
-                        headerTitle: 'hidden',
-                        headerSubtitle: 'hidden',
-                        socialButtonsBlockButton: 'border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400',
-                        formFieldInput: 'bg-white border-gray-300 text-gray-900 focus:border-purple-500 focus:ring-purple-500',
-                        formFieldLabel: 'text-gray-700 font-medium',
-                        footerActionLink: 'text-purple-600 hover:text-purple-700 font-medium',
-                        dividerLine: 'bg-gray-300',
-                        dividerText: 'text-gray-500',
-                        formFieldErrorText: 'text-red-600',
-                        identityPreviewText: 'text-gray-700',
-                        formHeaderTitle: 'text-gray-900',
-                        formHeaderSubtitle: 'text-gray-600',
-                        // Remove any scrollbar styling
-                        rootBox: 'overflow-visible',
-                        cardBox: 'overflow-visible',
-                        main: 'overflow-visible',
-                      }
-                    }}
-                    redirectUrl={window.location.origin}
-                  />
-                  <div className="text-center mt-3">
-                    <button
-                      onClick={() => setAuthMode('signup')}
-                      className="text-purple-600 hover:text-purple-700 text-sm font-medium"
-                    >
-                      Don't have an account? Sign up
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
     </>
   );
 };
