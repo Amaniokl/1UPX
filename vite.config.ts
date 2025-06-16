@@ -4,6 +4,7 @@ import { nodePolyfills } from 'vite-plugin-node-polyfills';
 import path from 'path';
 import wasm from 'vite-plugin-wasm';
 import topLevelAwait from 'vite-plugin-top-level-await';
+
 export default defineConfig({
   plugins: [
     react(),
@@ -15,12 +16,20 @@ export default defineConfig({
   ],
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, 'src'),
-      // Don't add buffer/process aliases here if using nodePolyfills
+      '@': path.resolve(__dirname, 'lib'),
     },
+    dedupe: ['@decloudlabs/skynet'],
   },
   optimizeDeps: {
     include: ['buffer', 'process'],
     exclude: ['@decloudlabs/skynet']
+  },
+  build: {
+    commonjsOptions: {
+      include: [/@decloudlabs\/skynet/, /node_modules/],
+    },
+  },
+  esbuild: {
+    target: 'esnext',
   },
 });

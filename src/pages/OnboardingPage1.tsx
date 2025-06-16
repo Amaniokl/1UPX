@@ -334,30 +334,30 @@ export default function OnboardingStep1() {
     console.log(payload)
 
     try {
-      const response = await fetch('http://localhost:5000/api/user-details/', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(payload)
-      });
+      // const response = await fetch('http://localhost:5000/api/user-details/', {
+      //   method: 'POST',
+      //   headers: {
+      //     'Content-Type': 'application/json'
+      //   },
+      //   body: JSON.stringify(payload)
+      // });
 
-      if (!response.ok) {
-        // Try to parse error message from server
-        let errorMessage = 'Failed to submit details';
-        try {
-          const errorData = await response.json();
-          errorMessage = errorData.message || errorData.error || errorMessage;
-        } catch {
-          // If response is not JSON, use status text
-          errorMessage = response.statusText || errorMessage;
-        }
-        throw new Error(errorMessage);
-      }
+      // if (!response.ok) {
+      //   // Try to parse error message from server
+      //   let errorMessage = 'Failed to submit details';
+      //   try {
+      //     const errorData = await response.json();
+      //     errorMessage = errorData.message || errorData.error || errorMessage;
+      //   } catch {
+      //     // If response is not JSON, use status text
+      //     errorMessage = response.statusText || errorMessage;
+      //   }
+      //   throw new Error(errorMessage);
+      // }
 
       // Optionally, get response data
-      const responseData = await response.json();
-      console.log('Server response:', responseData);
+      // const responseData = await response.json();
+      // console.log('Server response:', responseData);
 
       // Save all form data to context at once
       setData(payload);

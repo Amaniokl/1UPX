@@ -29,12 +29,6 @@ import {
   Plus,
   Workflow
 } from "lucide-react";
-import { useContext } from 'react';
-import { AppCryptoContext } from '../providers/AppCryptoProvider'; // adjust the path as necessary
-
-import { mintNft } from "../utils/nft";
-import { fetchNfts } from "../utils/nft";
-
 
 // Agent Type Selector Component
 const AgentTypeSelector = ({ selectedType, onSelect }: { 
@@ -270,7 +264,6 @@ const SelectedJobInfo = ({ job, field }: { job: string; field: string }) => {
             "{job}"
           </p>
           <div className="flex items-center mt-2 text-xs text-cyan-600">
-            {/* <Play className="w-3 h-3 mr-1" /> */}
             <span>Ready to execute</span>
           </div>
         </div>
@@ -280,7 +273,6 @@ const SelectedJobInfo = ({ job, field }: { job: string; field: string }) => {
 };
 
 // Full Width Prompt Interface Component
-// Full Width Prompt Interface Component
 const PromptInterface = ({ initialPrompt, selectedJob, selectedJobField }: { 
   initialPrompt: string;
   selectedJob?: string;
@@ -289,45 +281,24 @@ const PromptInterface = ({ initialPrompt, selectedJob, selectedJobField }: {
   const [prompt, setPrompt] = useState(initialPrompt);
   const [isProcessing, setIsProcessing] = useState(false);
   const [result, setResult] = useState("");
-  const { skyBrowser } = useContext(AppCryptoContext);
-  const [nftId, setNftId] = useState<string | null>(null);
-
-  // Fetch NFT ID on component mount
-  useEffect(() => {
-    const fetchNftId = async () => {
-      if (skyBrowser) {
-        try {
-          const address = skyBrowser.contractService.selectedAccount;
-          const nfts = await fetchNfts(address, skyBrowser);
-          if (nfts && nfts.length > 0) {
-            const selectedNftId = localStorage.getItem(`selectedNftId-${address}`) || nfts[0];
-            setNftId(selectedNftId);
-          }
-        } catch (error) {
-          console.error("Error fetching NFT ID:", error);
-        }
-      }
-    };
-    
-    fetchNftId();
-  }, [skyBrowser]);
 
   const handleSubmit = async () => {
-    if (!prompt.trim() || !skyBrowser || !nftId) return;
+    if (!prompt.trim()) return;
     
     setIsProcessing(true);
     
     try {
-      // Get user authentication payload
-      const userAuthPayload = await skyBrowser.appManager.getUrsulaAuth();
-      
-      // Prepare request body
+      // Hardcoded request body
       const requestBody = {
         prompt: prompt,
-        userAuthPayload: userAuthPayload,
+        userAuthPayload: {
+          userAddress: "0x38524cd7439C9Ba81D252D0394Df16e810ef2369",
+          signature: "0x79bea4fbc1444f1d88237e82b76dc6ba83a3dd841402516be98cea2b671fee7a5384154a36a5b2815b80344426d7f734945e9b85907d2a53635fc2adefae57fe1b",
+          message: "1750010306782"
+        },
         accountNFT: {
           collectionID: "0",
-          nftID: nftId
+          nftID: "509"
         }
       };
       
@@ -345,6 +316,7 @@ const PromptInterface = ({ initialPrompt, selectedJob, selectedJobField }: {
       }
       
       const data = await response.json();
+      console.log(response)
       setResult(data.response || "Request completed successfully");
     } catch (error) {
       console.error("Error processing request:", error);
@@ -383,10 +355,10 @@ const PromptInterface = ({ initialPrompt, selectedJob, selectedJobField }: {
 
         <Button
           onClick={handleSubmit}
-          disabled={!prompt.trim() || isProcessing || !nftId}
+          disabled={!prompt.trim() || isProcessing}
           className={`
             w-full h-12 rounded-xl font-semibold transition-all duration-300
-            ${prompt.trim() && !isProcessing && nftId
+            ${prompt.trim() && !isProcessing
               ? 'bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white shadow-lg hover:shadow-xl hover:scale-[1.02]'
               : 'bg-slate-300 text-slate-500 cursor-not-allowed'
             }
@@ -467,16 +439,13 @@ const PromptInterface = ({ initialPrompt, selectedJob, selectedJobField }: {
   );
 };
 
-
-export default async function OnboardingStep4() {
+export default function OnboardingStep4() {
   const navigate = useNavigate();
   const { data: contextData, setData } = useOnboarding();
   const [selectedAgentType, setSelectedAgentType] = useState('type2');
   const [projectFiles, setProjectFiles] = useState<string[]>([]);
   const [agentFiles, setAgentFiles] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { skyBrowser } = useContext(AppCryptoContext);
-  const userAuthPayload = await skyBrowser?.appManager.getUrsulaAuth();
 
   // Generate initial prompt based on selected job from previous step
   const initialPrompt = contextData.selectedJob 
@@ -670,7 +639,7 @@ export default async function OnboardingStep4() {
 
                     {/* Final Action */}
                     <div className="pt-8 border-t border-slate-200/60 text-center">
-                      <Button
+                    <Button
                         onClick={handleComplete}
                         disabled={isSubmitting}
                         className="h-14 px-8 text-lg font-semibold rounded-xl shadow-lg
@@ -688,8 +657,7 @@ export default async function OnboardingStep4() {
                     </div>
                   </CardContent>
                 </Card>
-              
-                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -724,3 +692,4 @@ export default async function OnboardingStep4() {
     </div>
   );
 }
+
