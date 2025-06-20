@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "../components/ui/button";
 import { Card, CardContent } from "../components/ui/card";
@@ -29,6 +29,11 @@ import {
   Plus,
   Workflow
 } from "lucide-react";
+import { useWeb3Auth } from "@web3auth/modal-react-hooks";
+import { mintNFTWithEthers, fetchUserNFTs, signUserForDecryption} from "../utils/nftUtils";
+import { CONNECT_STATES } from '../providers/Web3ContextProvider';
+import { Web3Context } from "../providers/Web3ContextProvider";
+import { ethers } from "ethers";
 
 // Agent Type Selector Component
 const AgentTypeSelector = ({ selectedType, onSelect }: { 
@@ -281,24 +286,35 @@ const PromptInterface = ({ initialPrompt, selectedJob, selectedJobField }: {
   const [prompt, setPrompt] = useState(initialPrompt);
   const [isProcessing, setIsProcessing] = useState(false);
   const [result, setResult] = useState("");
+  const [recordId, setRecordId] = useState("");
+  const [responseData, setResponseData] = useState(null);
+  const web3Context = useContext(Web3Context);
+  const {provider} = useWeb3Auth();
 
   const handleSubmit = async () => {
     if (!prompt.trim()) return;
     
     setIsProcessing(true);
+    setResult("");
+    setRecordId("");
+    setResponseData(null);
     
     try {
-      // Hardcoded request body
+      const isAuthenticated = web3Context.status === CONNECT_STATES.CONNECTED;
+      const userAddress = isAuthenticated && web3Context.address ? 
+      web3Context.address : '';
+      
+      const UserNfts = await fetchUserNFTs(provider, userAddress);
+      const UserAuth = await signUserForDecryption(provider, userAddress);
+      const userAuthPayload = UserAuth.data;
+      console.log("Log for ", UserNfts);
+      
       const requestBody = {
         prompt: prompt,
-        userAuthPayload: {
-          userAddress: "0x38524cd7439C9Ba81D252D0394Df16e810ef2369",
-          signature: "0x79bea4fbc1444f1d88237e82b76dc6ba83a3dd841402516be98cea2b671fee7a5384154a36a5b2815b80344426d7f734945e9b85907d2a53635fc2adefae57fe1b",
-          message: "1750010306782"
-        },
+        userAuthPayload: userAuthPayload,
         accountNFT: {
           collectionID: "0",
-          nftID: "509"
+          nftID: UserNfts[0]
         }
       };
       
@@ -316,8 +332,27 @@ const PromptInterface = ({ initialPrompt, selectedJob, selectedJobField }: {
       }
       
       const data = await response.json();
-      console.log(response)
-      setResult(data.response || "Request completed successfully");
+      console.log("Full API Response:", data);
+      
+      // Store the complete response data
+      setResponseData(data);
+      
+      // Extract and display record ID if it exists
+      if (data.success && data.data && data.data.sourceRecords && data.data.sourceRecords.length > 0) {
+        const recordId = data.data.sourceRecords[0].id;
+        setRecordId(recordId);
+        console.log("Record ID:", recordId);
+      }
+      
+      // Display the response
+      if (data.success && data.data && data.data.answer) {
+        setResult(data.data.answer);
+      } else if (data.message) {
+        setResult(data.message);
+      } else {
+        setResult("Request completed successfully");
+      }
+      
     } catch (error) {
       console.error("Error processing request:", error);
       setResult(`Error: ${error instanceof Error ? error.message : "Failed to process request"}`);
@@ -408,7 +443,41 @@ const PromptInterface = ({ initialPrompt, selectedJob, selectedJobField }: {
                 <CheckCircle className="w-5 h-5 text-emerald-600" />
                 <span className="font-semibold text-emerald-800">Generated Successfully</span>
               </div>
-              <p className="text-slate-700 leading-relaxed whitespace-pre-line">{result}</p>
+              
+              {/* Show Record ID if available */}
+              {recordId && (
+                <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                  <div className="flex items-center space-x-2 mb-2">
+                    <Database className="w-4 h-4 text-blue-600" />
+                    <span className="text-sm font-medium text-blue-800">Record ID</span>
+                  </div>
+                  <code className="text-xs text-blue-700 bg-blue-100 px-2 py-1 rounded font-mono break-all block">
+                    {recordId}
+                  </code>
+                </div>
+              )}
+
+              {/* Show Response Data Summary */}
+              {responseData && (
+                <div className="p-3 bg-slate-50 border border-slate-200 rounded-lg">
+                  <div className="flex items-center space-x-2 mb-2">
+                    <FileText className="w-4 h-4 text-slate-600" />
+                    <span className="text-sm font-medium text-slate-800">Response Summary</span>
+                  </div>
+                  <div className="text-xs text-slate-600 space-y-1">
+                    <div>Operation: <span className="font-mono bg-slate-200 px-1 rounded">{responseData.operation}</span></div>
+                    <div>Success: <span className={`font-mono px-1 rounded ${responseData.success ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>{responseData.success ? 'true' : 'false'}</span></div>
+                    {responseData.data && responseData.data.totalRecords && (
+                      <div>Total Records: <span className="font-mono bg-slate-200 px-1 rounded">{responseData.data.totalRecords}</span></div>
+                    )}
+                  </div>
+                </div>
+              )}
+              
+              {/* Main Response Content */}
+              <div className="p-4 bg-white border border-emerald-200 rounded-lg">
+                <p className="text-slate-700 leading-relaxed whitespace-pre-line">{result}</p>
+              </div>
               
               {/* Action Buttons */}
               <div className="flex space-x-3 pt-4 border-t border-emerald-200/60">
@@ -420,6 +489,17 @@ const PromptInterface = ({ initialPrompt, selectedJob, selectedJobField }: {
                   <Play className="w-4 h-4 mr-2" />
                   Preview
                 </Button>
+                {recordId && (
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="border-blue-200 text-blue-700 hover:bg-blue-50"
+                    onClick={() => navigator.clipboard.writeText(recordId)}
+                  >
+                    <Database className="w-4 h-4 mr-2" />
+                    Copy ID
+                  </Button>
+                )}
               </div>
             </div>
           ) : (
@@ -565,7 +645,7 @@ export default function OnboardingStep4() {
                     <div className="grid lg:grid-cols-2 gap-8">
                       {/* Left Column - Agent Configuration */}
                       <div className="space-y-4">
-                        <div className="flex items-center space-x-3 mb-4">
+                      <div className="flex items-center space-x-3 mb-4">
                           <div className="bg-gradient-to-r from-cyan-500 to-blue-500 p-2 rounded-lg shadow-lg">
                             <Bot className="w-5 h-5 text-white" />
                           </div>
@@ -639,7 +719,7 @@ export default function OnboardingStep4() {
 
                     {/* Final Action */}
                     <div className="pt-8 border-t border-slate-200/60 text-center">
-                    <Button
+                      <Button
                         onClick={handleComplete}
                         disabled={isSubmitting}
                         className="h-14 px-8 text-lg font-semibold rounded-xl shadow-lg

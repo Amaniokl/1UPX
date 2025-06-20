@@ -17,6 +17,9 @@ const ChainContext = createContext<ChainContextType>({
 export const useChainContext = () => useContext(ChainContext);
 
 function ChainProvider({ children }: { children: ReactNode }) {
+    //provider is there
+    //
+    //
     const { provider, web3Auth } = useWeb3Auth();
     const router = useNavigate();
 

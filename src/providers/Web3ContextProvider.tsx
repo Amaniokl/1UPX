@@ -1,11 +1,11 @@
 'use client';
 import { createContext, useEffect, useState, useRef } from 'react';
-import { useRouter } from 'next/navigation';
+import { useNavigate } from 'react-router-dom';
+
 import { Address } from 'viem';
 import { useWeb3Auth } from '@web3auth/modal-react-hooks';
 import { Web3Auth } from "@web3auth/modal";
 import { Web3RPC } from '../utils/web3RPC';
-import { useNavigate } from 'react-router-dom';
 
 export interface IWeb3State {
     address: string;
@@ -70,7 +70,7 @@ export function isConnectedState(state: IWeb3Context): state is IWeb3ContextConn
 }
 
 const Web3ContextProvider = ({ children }: { children: React.ReactNode }) => {
-    const router = useNavigate();
+    const router =useNavigate();
     const {
         provider,
         logout: web3Logout,
