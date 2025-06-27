@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Input } from "../components/ui/input";
 import { Button } from "../components/ui/button";
 import { Card, CardContent } from "../components/ui/card";
@@ -9,12 +9,12 @@ import { Web3Context, isConnectedState } from '../providers/Web3ContextProvider'
 
 import { useOnboarding } from '../components/context/OnboardingContext';
 import { useNavigate } from 'react-router-dom';
-import { 
-  Building2, 
-  User, 
-  Globe, 
-  Linkedin, 
-  Twitter, 
+import {
+  Building2,
+  User,
+  Globe,
+  Linkedin,
+  Twitter,
   Briefcase,
   CheckCircle,
   Sparkles,
@@ -38,13 +38,13 @@ import {
 } from 'lucide-react';
 
 // Enhanced Input Component
-const FormInput = ({ 
-  icon: Icon, 
-  label, 
-  required = false, 
-  error = '', 
+const FormInput = ({
+  icon: Icon,
+  label,
+  required = false,
+  error = '',
   theme = 'default',
-  ...props 
+  ...props
 }: {
   icon: any;
   label: string;
@@ -66,7 +66,7 @@ const FormInput = ({
       </Label>
       <div className="relative group">
         <Icon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-slate-600 transition-colors duration-200" />
-        <Input 
+        <Input
           {...props}
           className={`
             pl-10 h-10 border-slate-200 rounded-lg transition-all duration-200 text-sm
@@ -92,15 +92,15 @@ const FormInput = ({
 };
 
 // Enhanced Account Type Card
-const AccountTypeCard = ({ 
-  type, 
-  icon: Icon, 
-  title, 
-  description, 
-  isSelected, 
+const AccountTypeCard = ({
+  type,
+  icon: Icon,
+  title,
+  description,
+  isSelected,
   onClick,
   gradient,
-  bgGradient 
+  bgGradient
 }: {
   type: 'company' | 'individual';
   icon: any;
@@ -116,8 +116,8 @@ const AccountTypeCard = ({
       onClick={onClick}
       className={`
         relative group p-4 rounded-xl border-2 transition-all duration-300 w-full
-        ${isSelected 
-          ? `border-transparent bg-gradient-to-br ${bgGradient} shadow-lg scale-[1.02] ring-2 ring-offset-2 ${type === 'company' ? 'ring-cyan-500/20' : 'ring-purple-500/20'}` 
+        ${isSelected
+          ? `border-transparent bg-gradient-to-br ${bgGradient} shadow-lg scale-[1.02] ring-2 ring-offset-2 ${type === 'company' ? 'ring-cyan-500/20' : 'ring-purple-500/20'}`
           : 'border-slate-200 bg-white/50 hover:border-slate-300 hover:bg-white/80 hover:shadow-md hover:scale-[1.01]'
         }
         backdrop-blur-sm
@@ -127,21 +127,21 @@ const AccountTypeCard = ({
         <div className="relative">
           <div className={`
             p-3 rounded-xl transition-all duration-300 shadow-sm
-            ${isSelected 
-              ? `bg-gradient-to-r ${gradient} shadow-lg` 
+            ${isSelected
+              ? `bg-gradient-to-r ${gradient} shadow-lg`
               : 'bg-slate-100 group-hover:bg-slate-200'
             }
           `}>
             <Icon className={`w-5 h-5 ${isSelected ? 'text-white' : 'text-slate-600'}`} />
           </div>
-          
+
           {isSelected && (
             <div className="absolute -top-1 -right-1 w-5 h-5 bg-white rounded-full flex items-center justify-center shadow-lg">
               <CheckCircle className={`w-3 h-3 ${type === 'company' ? 'text-cyan-500' : 'text-purple-500'}`} />
             </div>
           )}
         </div>
-        
+
         <div className="text-center space-y-1">
           <h3 className={`font-semibold text-base ${isSelected ? (type === 'company' ? 'text-cyan-700' : 'text-purple-700') : 'text-slate-700'}`}>
             {title}
@@ -151,7 +151,7 @@ const AccountTypeCard = ({
           </p>
         </div>
       </div>
-      
+
       <div className={`
         absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300
         ${type === 'company' ? 'bg-gradient-to-br from-cyan-500/5 to-blue-500/5' : 'bg-gradient-to-br from-purple-500/5 to-pink-500/5'}
@@ -161,61 +161,67 @@ const AccountTypeCard = ({
 };
 
 // Success Message Component
-const SuccessMessage = ({ data }: { data: any }) => (
-  <div className="animate-in slide-in-from-bottom-4 duration-500">
-    <div className="relative group">
-      <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/10 to-teal-500/10 rounded-xl blur-sm" />
-      <div className="relative bg-gradient-to-br from-emerald-50/90 to-teal-50/90 backdrop-blur-sm border border-emerald-200/60 p-4 rounded-xl shadow-lg">
-        <div className="flex items-start space-x-3">
-          <div className="bg-gradient-to-r from-emerald-500 to-teal-500 p-2 rounded-lg shadow-lg">
-            <CheckCircle className="w-4 h-4 text-white" />
-          </div>
-          <div className="flex-1 space-y-2">
-            <div>
-              <h4 className="font-semibold text-emerald-800 text-base mb-1">Perfect! Information Saved</h4>
-              <p className="text-emerald-700 text-xs">
-                Your profile has been created successfully. Let's move to the next step.
-              </p>
+const SuccessMessage = ({ data, responseMessage }: { data: any; responseMessage?: string }) => {
+  const isUpdate = responseMessage?.includes('updated') || false;
+
+  return (
+    <div className="animate-in slide-in-from-bottom-4 duration-500">
+      <div className="relative group">
+        <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/10 to-teal-500/10 rounded-xl blur-sm" />
+        <div className="relative bg-gradient-to-br from-emerald-50/90 to-teal-50/90 backdrop-blur-sm border border-emerald-200/60 p-4 rounded-xl shadow-lg">
+          <div className="flex items-start space-x-3">
+            <div className="bg-gradient-to-r from-emerald-500 to-teal-500 p-2 rounded-lg shadow-lg">
+              <CheckCircle className="w-4 h-4 text-white" />
             </div>
-            
-            <div className="bg-white/70 backdrop-blur-sm border border-emerald-200/40 rounded-lg p-3">
-              <h5 className="font-medium text-emerald-800 mb-2 text-xs">Summary:</h5>
-              <div className="space-y-1 text-xs text-emerald-700">
-                {data.isCompany ? (
-                  <>
-                    <div className="flex items-center gap-2">
-                      <Building2 className="w-3 h-3" />
-                      <span>Company: {data.companyName || 'Not specified'}</span>
-                    </div>
-                    {data.website && (
+            <div className="flex-1 space-y-2">
+              <div>
+                <h4 className="font-semibold text-emerald-800 text-base mb-1">
+                  Perfect! Information {isUpdate ? 'Updated' : 'Saved'}
+                </h4>
+                <p className="text-emerald-700 text-xs">
+                  {responseMessage || `Your profile has been ${isUpdate ? 'updated' : 'created'} successfully. Let's move to the next step.`}
+                </p>
+              </div>
+
+              <div className="bg-white/70 backdrop-blur-sm border border-emerald-200/40 rounded-lg p-3">
+                <h5 className="font-medium text-emerald-800 mb-2 text-xs">Summary:</h5>
+                <div className="space-y-1 text-xs text-emerald-700">
+                  {data.isCompany ? (
+                    <>
                       <div className="flex items-center gap-2">
-                        <Globe className="w-3 h-3" />
-                        <span>Website: {data.website}</span>
+                        <Building2 className="w-3 h-3" />
+                        <span>Company: {data.companyName || 'Not specified'}</span>
                       </div>
-                    )}
-                  </>
-                ) : (
-                  <>
-                    <div className="flex items-center gap-2">
-                      <User className="w-3 h-3" />
-                      <span>Name: {data.name || 'Not specified'}</span>
-                    </div>
-                    {data.portfolio && (
+                      {data.website && (
+                        <div className="flex items-center gap-2">
+                          <Globe className="w-3 h-3" />
+                          <span>Website: {data.website}</span>
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    <>
                       <div className="flex items-center gap-2">
-                        <Briefcase className="w-3 h-3" />
-                        <span>Portfolio: {data.portfolio}</span>
+                        <User className="w-3 h-3" />
+                        <span>Name: {data.name || 'Not specified'}</span>
                       </div>
-                    )}
-                  </>
-                )}
+                      {data.portfolio && (
+                        <div className="flex items-center gap-2">
+                          <Briefcase className="w-3 h-3" />
+                          <span>Portfolio: {data.portfolio}</span>
+                        </div>
+                      )}
+                    </>
+                  )}
+                </div>
               </div>
             </div>
           </div>
         </div>
       </div>
     </div>
-  </div>
-);
+  );
+};
 
 // Error Message Component
 const ErrorMessage = ({ error, onRetry }: { error: string; onRetry: () => void }) => (
@@ -233,7 +239,7 @@ const ErrorMessage = ({ error, onRetry }: { error: string; onRetry: () => void }
               <p className="text-red-700 text-xs mb-3">
                 {error}
               </p>
-              <Button 
+              <Button
                 onClick={onRetry}
                 size="sm"
                 className="bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600 text-white text-xs px-3 py-1 h-7"
@@ -248,27 +254,164 @@ const ErrorMessage = ({ error, onRetry }: { error: string; onRetry: () => void }
   </div>
 );
 
+// Loading Component
+const LoadingScreen = () => (
+  <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/40 to-purple-50/40 flex items-center justify-center">
+    <div className="text-center space-y-4">
+      <div className="inline-flex items-center justify-center mb-4 relative">
+        <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/30 to-purple-500/30 rounded-2xl blur-xl w-16 h-16 animate-pulse-slow" />
+        <div className="relative bg-gradient-to-r from-cyan-500 to-purple-500 p-3 rounded-2xl shadow-xl">
+          <Loader2 className="w-7 h-7 text-white animate-spin" />
+        </div>
+      </div>
+      <h2 className="text-xl font-semibold text-slate-800">Loading your profile...</h2>
+      <p className="text-slate-600">Please wait while we fetch your information</p>
+    </div>
+  </div>
+);
+
+// Wallet Not Connected Component
+const WalletNotConnected = () => (
+  <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/40 to-purple-50/40 flex items-center justify-center">
+    <div className="text-center space-y-4">
+      <div className="inline-flex items-center justify-center mb-4">
+        <div className="bg-gradient-to-r from-red-500 to-pink-500 p-3 rounded-2xl shadow-xl">
+          <AlertCircle className="w-7 h-7 text-white" />
+        </div>
+      </div>
+      <h2 className="text-xl font-semibold text-slate-800">Wallet Not Connected</h2>
+      <p className="text-slate-600">Please connect your wallet to continue with onboarding</p>
+    </div>
+  </div>
+);
+
 export default function OnboardingStep1() {
   // Get context data and methods
   const { data: contextData, setData } = useOnboarding();
   const navigate = useNavigate();
   const web3Context = useContext(Web3Context);
   const walletAddress = isConnectedState(web3Context) ? web3Context.address : null;
-  // Use context data or initialize with defaults
-  const [isCompany, setIsCompany] = useState<null | boolean>(contextData.isCompany ?? null);
+
+  // State management - Initialize with empty values
+  const [isCompany, setIsCompany] = useState<null | boolean>(null);
   const [formData, setFormData] = useState({
-    companyName: contextData.companyName || '',
-    linkedIn: contextData.linkedIn || '',
-    website: contextData.website || '',
-    twitter: contextData.twitter || '',
-    name: contextData.name || '',
-    portfolio: contextData.portfolio || ''
+    companyName: '',
+    linkedIn: '',
+    website: '',
+    twitter: '',
+    name: '',
+    portfolio: ''
   });
-  
+
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
   const [serverError, setServerError] = useState('');
+  const [initialLoading, setInitialLoading] = useState(true);
+  const [userExists, setUserExists] = useState(false);
+  const [responseMessage, setResponseMessage] = useState('');
+  const [dataFetched, setDataFetched] = useState(false);
+
+  // Fetch user details from database
+  const fetchUserDetails = async () => {
+    if (!walletAddress) {
+      setInitialLoading(false);
+      return;
+    }
+
+    try {
+      console.log('Fetching user details for wallet:', walletAddress);
+
+      const response = await fetch(`http://localhost:5000/api/user-details/${walletAddress}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        const userData = result.data || result;
+        console.log('Fetched user data:', userData);
+
+        // Create the updated form data object
+        const updatedFormData = {
+          companyName: userData.companyName || '',
+          linkedIn: userData.linkedIn || '',
+          website: userData.website || '',
+          twitter: userData.twitter || '',
+          name: userData.name || '',
+          portfolio: userData.portfolio || ''
+        };
+
+        // Update all states with fetched data
+        setIsCompany(userData.isCompany);
+        setFormData(updatedFormData);
+
+        // Update context with fetched data
+        setData({
+          isCompany: userData.isCompany,
+          ...updatedFormData
+        });
+
+        setUserExists(true);
+        setDataFetched(true);
+
+        console.log('Updated form data:', updatedFormData);
+        console.log('Updated isCompany:', userData.isCompany);
+
+      } else if (response.status === 404) {
+        // User doesn't exist yet, which is fine for new users
+        console.log('User not found - new user');
+        setUserExists(false);
+        setDataFetched(true);
+
+        // Initialize with context data if available
+        if (contextData) {
+          setIsCompany(contextData.isCompany ?? null);
+          setFormData({
+            companyName: contextData.companyName || '',
+            linkedIn: contextData.linkedIn || '',
+            website: contextData.website || '',
+            twitter: contextData.twitter || '',
+            name: contextData.name || '',
+            portfolio: contextData.portfolio || ''
+          });
+        }
+      } else {
+        console.error('Failed to fetch user details:', response.statusText);
+        setUserExists(false);
+        setDataFetched(true);
+      }
+    } catch (error) {
+      console.error('Error fetching user details:', error);
+      // If fetch fails, assume new user
+      setUserExists(false);
+      setDataFetched(true);
+    } finally {
+      setInitialLoading(false);
+    }
+  };
+
+  // Fetch user details on component mount
+  useEffect(() => {
+    fetchUserDetails();
+  }, [walletAddress]);
+
+  // Sync with context data when it changes (but only if we haven't fetched from DB)
+  useEffect(() => {
+    if (!dataFetched && contextData) {
+      setIsCompany(contextData.isCompany ?? null);
+      setFormData({
+        companyName: contextData.companyName || '',
+        linkedIn: contextData.linkedIn || '',
+        website: contextData.website || '',
+        twitter: contextData.twitter || '',
+        name: contextData.name || '',
+        portfolio: contextData.portfolio || ''
+      });
+    }
+  }, [contextData, dataFetched]);
 
   // Update both local state and context when company type changes
   const handleCompanyTypeChange = (value: boolean) => {
@@ -281,30 +424,31 @@ export default function OnboardingStep1() {
   // Update both local state and context when form fields change
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    
+
     // Update local state
-    setFormData({ ...formData, [name]: value });
-    
+    const updatedFormData = { ...formData, [name]: value };
+    setFormData(updatedFormData);
+
     // Update context
     setData({ [name]: value });
-    
+
     // Clear errors
     if (errors[name]) {
       setErrors({ ...errors, [name]: '' });
     }
-    
+
     // Clear server error when user makes changes
     if (serverError) setServerError('');
   };
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
-    
+
     if (isCompany === null) {
       setServerError('Please select whether you are a company or individual');
       return false;
     }
-    
+
     if (isCompany === true) {
       if (!formData.companyName.trim()) {
         newErrors.companyName = 'Company name is required';
@@ -314,7 +458,7 @@ export default function OnboardingStep1() {
         newErrors.name = 'Your name is required';
       }
     }
-    
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -327,37 +471,51 @@ export default function OnboardingStep1() {
 
     // Prepare payload
     const payload = {
-      isCompany,
       user_id: walletAddress,
-      ...formData
+      isCompany,
+      companyName: formData.companyName,
+      linkedIn: formData.linkedIn,
+      website: formData.website,
+      twitter: formData.twitter,
+      name: formData.name,
+      portfolio: formData.portfolio
     };
-    console.log(payload)
+
+    console.log('Submitting payload:', payload);
 
     try {
-      // const response = await fetch('http://localhost:5000/api/user-details/', {
-      //   method: 'POST',
-      //   headers: {
-      //     'Content-Type': 'application/json'
-      //   },
-      //   body: JSON.stringify(payload)
-      // });
+      // Use your single endpoint that handles both create and update
+      const response = await fetch('http://localhost:5000/api/user-details/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+      });
 
-      // if (!response.ok) {
-      //   // Try to parse error message from server
-      //   let errorMessage = 'Failed to submit details';
-      //   try {
-      //     const errorData = await response.json();
-      //     errorMessage = errorData.message || errorData.error || errorMessage;
-      //   } catch {
-      //     // If response is not JSON, use status text
-      //     errorMessage = response.statusText || errorMessage;
-      //   }
-      //   throw new Error(errorMessage);
-      // }
+      if (!response.ok) {
+        // Try to parse error message from server
+        let errorMessage = 'Failed to save details';
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.message || errorData.error || errorMessage;
+        } catch {
+          // If response is not JSON, use status text
+          errorMessage = response.statusText || errorMessage;
+        }
+        throw new Error(errorMessage);
+      }
 
-      // Optionally, get response data
-      // const responseData = await response.json();
-      // console.log('Server response:', responseData);
+      // Get response data
+      const responseData = await response.json();
+      console.log('Server response:', responseData);
+
+      // Store response message for success display
+      setResponseMessage(responseData.message || '');
+
+      // Determine if this was an update or create based on the response
+      const wasUpdate = responseData.message?.includes('updated') || false;
+      setUserExists(wasUpdate);
 
       // Save all form data to context at once
       setData(payload);
@@ -381,6 +539,16 @@ export default function OnboardingStep1() {
     setSubmitted(false);
   };
 
+  // Show loading screen while fetching initial data
+  if (initialLoading) {
+    return <LoadingScreen />;
+  }
+
+  // Show wallet connection error if wallet is not connected
+  if (!walletAddress) {
+    return <WalletNotConnected />;
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/40 to-purple-50/40 relative overflow-hidden">
       {/* Background Elements */}
@@ -394,7 +562,7 @@ export default function OnboardingStep1() {
           backgroundSize: '40px 40px',
           animation: 'gridMove 20s linear infinite'
         }} />
-        
+
         {/* Floating Orbs */}
         <div className="absolute top-24 right-16 w-64 h-64 bg-gradient-to-br from-cyan-400/20 to-blue-500/20 rounded-full blur-3xl animate-pulse-slow" />
         <div className="absolute bottom-24 left-16 w-56 h-56 bg-gradient-to-br from-purple-400/20 to-violet-500/20 rounded-full blur-3xl animate-pulse-slow" style={{ animationDelay: '3s' }} />
@@ -431,11 +599,11 @@ export default function OnboardingStep1() {
             <div className="inline-flex items-center justify-center mb-6 relative">
               {/* Glow Effect */}
               <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/30 to-purple-500/30 rounded-2xl blur-xl w-16 h-16 animate-pulse-slow" />
-              
+
               {/* Main Icon Container */}
               <div className="relative bg-gradient-to-r from-cyan-500 via-blue-500 to-purple-500 p-3 rounded-2xl shadow-xl transform hover:scale-105 transition-all duration-500">
                 <Sparkles className="w-7 h-7 text-white relative z-10" />
-                
+
                 {/* Orbiting Elements */}
                 <div className="absolute -top-1 -right-1 w-4 h-4 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full animate-bounce" style={{ animationDelay: '0.5s' }} />
                 <div className="absolute -bottom-1 -left-1 w-3 h-3 bg-gradient-to-r from-green-400 to-emerald-500 rounded-full animate-bounce" style={{ animationDelay: '1s' }} />
@@ -448,11 +616,16 @@ export default function OnboardingStep1() {
                 Yourself
               </span>
             </h1>
-            
+
             <p className="text-lg text-slate-600 leading-relaxed max-w-3xl mx-auto">
               Help us personalize your AI experience by sharing some basic information
+              {userExists && (
+                <span className="block text-sm text-emerald-600 mt-2 font-medium">
+                  ✓ We found your existing profile - you can update it below
+                </span>
+              )}
             </p>
-            
+
             {/* Divider */}
             <div className="flex items-center justify-center space-x-3 mt-6">
               <div className="w-12 h-0.5 bg-gradient-to-r from-transparent to-cyan-500 rounded-full" />
@@ -466,11 +639,11 @@ export default function OnboardingStep1() {
             <div className="relative group">
               {/* Glow Effect */}
               <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/10 via-blue-500/10 to-purple-500/10 rounded-2xl blur-lg group-hover:blur-xl transition-all duration-500" />
-              
+
               <Card className="relative bg-white/85 backdrop-blur-xl border-0 shadow-xl rounded-2xl overflow-hidden">
                 {/* Top Border */}
                 <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-cyan-500 via-blue-500 to-purple-500" />
-                
+
                 <CardContent className="p-6 md:p-8 space-y-8">
                   {/* Account Type Selection */}
                   <div className="space-y-6">
@@ -482,7 +655,7 @@ export default function OnboardingStep1() {
                         Choose the option that fits your profile
                       </p>
                     </div>
-                    
+
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl mx-auto">
                       <AccountTypeCard
                         type="company"
@@ -494,7 +667,7 @@ export default function OnboardingStep1() {
                         gradient="from-cyan-500 to-blue-500"
                         bgGradient="from-cyan-50/90 to-blue-50/90"
                       />
-                      
+
                       <AccountTypeCard
                         type="individual"
                         icon={User}
@@ -519,7 +692,7 @@ export default function OnboardingStep1() {
                         <p className="text-slate-600 text-sm">Tell us about your organization</p>
                         <div className="w-12 h-0.5 bg-gradient-to-r from-cyan-500 to-blue-500 rounded-full mx-auto" />
                       </div>
-                      
+
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-3xl mx-auto">
                         <div className="md:col-span-2">
                           <FormInput
@@ -536,7 +709,8 @@ export default function OnboardingStep1() {
                             disabled={loading}
                           />
                         </div>
-                        
+
+
                         <FormInput
                           icon={Globe}
                           label="Website"
@@ -548,7 +722,7 @@ export default function OnboardingStep1() {
                           theme="cyan"
                           disabled={loading}
                         />
-                        
+
                         <FormInput
                           icon={Linkedin}
                           label="LinkedIn"
@@ -560,7 +734,7 @@ export default function OnboardingStep1() {
                           theme="cyan"
                           disabled={loading}
                         />
-                        
+
                         <div className="md:col-span-2">
                           <FormInput
                             icon={Twitter}
@@ -588,7 +762,7 @@ export default function OnboardingStep1() {
                         <p className="text-slate-600 text-sm">Tell us about yourself</p>
                         <div className="w-12 h-0.5 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full mx-auto" />
                       </div>
-                      
+
                       <div className="space-y-4 max-w-xl mx-auto">
                         <FormInput
                           icon={User}
@@ -603,7 +777,7 @@ export default function OnboardingStep1() {
                           error={errors.name}
                           disabled={loading}
                         />
-                        
+
                         <FormInput
                           icon={Briefcase}
                           label="Portfolio URL"
@@ -628,7 +802,7 @@ export default function OnboardingStep1() {
                   {isCompany !== null && !submitted && (
                     <div className="pt-6 animate-in slide-in-from-bottom-4 duration-700">
                       <div className="max-w-md mx-auto">
-                        <Button 
+                        <Button
                           onClick={handleSubmit}
                           disabled={loading}
                           className={`
@@ -645,11 +819,11 @@ export default function OnboardingStep1() {
                             {loading ? (
                               <>
                                 <Loader2 className="w-5 h-5 animate-spin" />
-                                <span>Submitting...</span>
+                                <span>{userExists ? 'Updating...' : 'Submitting...'}</span>
                               </>
                             ) : (
                               <>
-                                <span>Continue to Next Step</span>
+                                <span>{userExists ? 'Update Profile' : 'Continue to Next Step'}</span>
                                 <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-300" />
                               </>
                             )}
@@ -661,7 +835,10 @@ export default function OnboardingStep1() {
 
                   {/* Success Message */}
                   {submitted && (
-                    <SuccessMessage data={{ isCompany, ...formData }} />
+                    <SuccessMessage
+                      data={{ isCompany, ...formData }}
+                      responseMessage={responseMessage}
+                    />
                   )}
                 </CardContent>
               </Card>
@@ -669,7 +846,6 @@ export default function OnboardingStep1() {
           </div>
         </div>
       </div>
-
 
       <style>{`
         @keyframes float-complex {
@@ -700,3 +876,4 @@ export default function OnboardingStep1() {
     </div>
   );
 }
+

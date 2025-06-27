@@ -1,183 +1,174 @@
 import React, { useState, useEffect } from 'react';
-
 import axios from 'axios';
-import { 
-  Image,
-  Check, 
-  Sparkles, 
-  ArrowRight, 
-  Briefcase,
-  Code,
-  TrendingUp,
-  Users,
-  Calculator,
-  Palette,
-  Heart,
-  GraduationCap,
-  ShoppingCart,
-  Home,
-  Factory,
-  HandHeart,
-  Building,
-  PenTool,
-  Scale,
-  Stethoscope,
-  Target,
-  Headphones,
-  Search,
-  Video,
-  LayoutDashboard,
-  BookOpen,
-  Music,
-  User,
-  Database,
-  BarChart2,
-  MessageSquare,
-  Zap,
-  Star,
-  Globe
-} from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent } from "../components/ui/card";
 import { Button } from "../components/ui/button";
 import { useOnboarding } from '../components/context/OnboardingContext';
+import { Check, ArrowRight, Sparkles } from 'lucide-react';
 import { useContext } from 'react';
 import { Web3Context, isConnectedState } from '../providers/Web3ContextProvider';
 
 const OnboardingStep2 = () => {
   const navigate = useNavigate();
-  // const { getToken } = useAuth();
   const web3Context = useContext(Web3Context);
   const walletAddress = isConnectedState(web3Context) ? web3Context.address : null;
   const { data: contextData, setData } = useOnboarding();
   
+  const [availableFields, setAvailableFields] = useState([]);
   const [selectedFields, setSelectedFields] = useState(contextData.selectedFields || []);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const availableFields = [
+  // Predefined color schemes for fields
+  const colorSchemes = [
     {
-      name: "Software Developer",
-      icon: Code,
-      gradient: "from-blue-500 to-cyan-500",
-      bgGradient: "from-blue-50/90 to-cyan-50/90",
-      shadowColor: "shadow-blue-500/25",
+      gradient: 'from-pink-500 to-rose-500',
+      bg_gradient: 'from-pink-50 to-rose-50',
+      shadow_color: 'shadow-pink-200/50',
+      border_color: 'border-pink-300',
+      icon_bg: 'bg-pink-100',
+      glow: 'from-pink-400/30 to-rose-400/30'
     },
     {
-      name: "Video Generator",
-      icon: Video,
-      gradient: "from-pink-500 to-rose-500",
-      bgGradient: "from-pink-50/90 to-rose-50/90",
-      shadowColor: "shadow-pink-500/25",
+      gradient: 'from-purple-500 to-violet-500',
+      bg_gradient: 'from-purple-50 to-violet-50',
+      shadow_color: 'shadow-purple-200/50',
+      border_color: 'border-purple-300',
+      icon_bg: 'bg-purple-100',
+      glow: 'from-purple-400/30 to-violet-400/30'
     },
     {
-      name: "Content Creator",
-      icon: PenTool,
-      gradient: "from-purple-500 to-violet-500",
-      bgGradient: "from-purple-50/90 to-violet-50/90",
-      shadowColor: "shadow-purple-500/25",
+      gradient: 'from-blue-500 to-cyan-500',
+      bg_gradient: 'from-blue-50 to-cyan-50',
+      shadow_color: 'shadow-blue-200/50',
+      border_color: 'border-blue-300',
+      icon_bg: 'bg-blue-100',
+      glow: 'from-blue-400/30 to-cyan-400/30'
     },
     {
-      name: "Designer",
-      icon: Palette,
-      gradient: "from-rose-500 to-orange-500",
-      bgGradient: "from-rose-50/90 to-orange-50/90",
-      shadowColor: "shadow-rose-500/25",
+      gradient: 'from-emerald-500 to-teal-500',
+      bg_gradient: 'from-emerald-50 to-teal-50',
+      shadow_color: 'shadow-emerald-200/50',
+      border_color: 'border-emerald-300',
+      icon_bg: 'bg-emerald-100',
+      glow: 'from-emerald-400/30 to-teal-400/30'
     },
     {
-      name: "UI/UX Designer",
-      icon: LayoutDashboard,
-      gradient: "from-fuchsia-500 to-pink-500",
-      bgGradient: "from-fuchsia-50/90 to-pink-50/90",
-      shadowColor: "shadow-fuchsia-500/25",
+      gradient: 'from-orange-500 to-amber-500',
+      bg_gradient: 'from-orange-50 to-amber-50',
+      shadow_color: 'shadow-orange-200/50',
+      border_color: 'border-orange-300',
+      icon_bg: 'bg-orange-100',
+      glow: 'from-orange-400/30 to-amber-400/30'
     },
     {
-      name: "Business Consulting",
-      icon: Briefcase,
-      gradient: "from-blue-500 to-emerald-500",
-      bgGradient: "from-blue-50/90 to-emerald-50/90",
-      shadowColor: "shadow-blue-500/25",
+      gradient: 'from-red-500 to-pink-500',
+      bg_gradient: 'from-red-50 to-pink-50',
+      shadow_color: 'shadow-red-200/50',
+      border_color: 'border-red-300',
+      icon_bg: 'bg-red-100',
+      glow: 'from-red-400/30 to-pink-400/30'
     },
     {
-      name: "Market Research",
-      icon: Search,
-      gradient: "from-indigo-500 to-blue-500",
-      bgGradient: "from-indigo-50/90 to-blue-50/90",
-      shadowColor: "shadow-indigo-500/25",
+      gradient: 'from-indigo-500 to-purple-500',
+      bg_gradient: 'from-indigo-50 to-purple-50',
+      shadow_color: 'shadow-indigo-200/50',
+      border_color: 'border-indigo-300',
+      icon_bg: 'bg-indigo-100',
+      glow: 'from-indigo-400/30 to-purple-400/30'
     },
     {
-      name: "Strategic Planning",
-      icon: Target,
-      gradient: "from-orange-500 to-amber-500",
-      bgGradient: "from-orange-50/90 to-amber-50/90",
-      shadowColor: "shadow-orange-500/25",
+      gradient: 'from-green-500 to-emerald-500',
+      bg_gradient: 'from-green-50 to-emerald-50',
+      shadow_color: 'shadow-green-200/50',
+      border_color: 'border-green-300',
+      icon_bg: 'bg-green-100',
+      glow: 'from-green-400/30 to-emerald-400/30'
     },
     {
-      name: "Financial Analysis",
-      icon: BarChart2,
-      gradient: "from-slate-600 to-gray-600",
-      bgGradient: "from-slate-50/90 to-gray-50/90",
-      shadowColor: "shadow-slate-500/25",
+      gradient: 'from-yellow-500 to-orange-500',
+      bg_gradient: 'from-yellow-50 to-orange-50',
+      shadow_color: 'shadow-yellow-200/50',
+      border_color: 'border-yellow-300',
+      icon_bg: 'bg-yellow-100',
+      glow: 'from-yellow-400/30 to-orange-400/30'
     },
     {
-      name: "Business Outreach",
-      icon: Users,
-      gradient: "from-teal-500 to-cyan-500",
-      bgGradient: "from-teal-50/90 to-cyan-50/90",
-      shadowColor: "shadow-teal-500/25",
-    },
-    {
-      name: "Music & Audio",
-      icon: Music,
-      gradient: "from-red-500 to-pink-500",
-      bgGradient: "from-red-50/90 to-pink-50/90",
-      shadowColor: "shadow-red-500/25",
-    },
-    {
-      name: "Writing & Translation",
-      icon: BookOpen,
-      gradient: "from-violet-500 to-purple-500",
-      bgGradient: "from-violet-50/90 to-purple-50/90",
-      shadowColor: "shadow-violet-500/25",
-    },
-    {
-      name: "Personal Growth",
-      icon: User,
-      gradient: "from-green-500 to-emerald-500",
-      bgGradient: "from-green-50/90 to-emerald-50/90",
-      shadowColor: "shadow-green-500/25",
-    },
-    {
-      name: "Consulting",
-      icon: MessageSquare,
-      gradient: "from-cyan-500 to-blue-500",
-      bgGradient: "from-cyan-50/90 to-blue-50/90",
-      shadowColor: "shadow-cyan-500/25",
-    },
-    {
-      name: "Data",
-      icon: Database,
-      gradient: "from-gray-600 to-slate-600",
-      bgGradient: "from-gray-50/90 to-slate-50/90",
-      shadowColor: "shadow-gray-500/25",
-    },
-    {
-      name: "Image Generation",
-      icon: Image,
-      gradient: "from-amber-500 to-yellow-500",
-      bgGradient: "from-amber-50/90 to-yellow-50/90",
-      shadowColor: "shadow-amber-500/25",
-    },
+      gradient: 'from-slate-600 to-gray-600',
+      bg_gradient: 'from-slate-50 to-gray-50',
+      shadow_color: 'shadow-slate-200/50',
+      border_color: 'border-slate-300',
+      icon_bg: 'bg-slate-100',
+      glow: 'from-slate-400/30 to-gray-400/30'
+    }
   ];
 
-  const toggleField = (field) => {
-    const updatedFields = selectedFields.includes(field)
-      ? selectedFields.filter(f => f !== field)
-      : [...selectedFields, field];
+  // Function to get color scheme for a field
+  const getColorScheme = (index) => {
+    return colorSchemes[index % colorSchemes.length];
+  };
+
+  // Default SVG path for fields without icons
+  const defaultSvgPath = "M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z";
+
+  // Fetch fields from API and user's selected fields if available
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setIsLoading(true);
+        setError(null);
+        
+        console.log('Fetching fields from API...');
+        const fieldsResponse = await axios.get('http://localhost:5000/api/fields');
+        
+        if (fieldsResponse.data && fieldsResponse.data.data) {
+          setAvailableFields(fieldsResponse.data.data);
+          console.log('Available fields fetched:', fieldsResponse.data.data.length);
+        } else {
+          throw new Error('Invalid fields response format');
+        }
+        
+        // If user is logged in, fetch their selected fields
+        if (walletAddress) {
+          console.log('Fetching user fields for address:', walletAddress);
+          try {
+            const userFieldsResponse = await axios.get(`http://localhost:5000/api/user-fields/${walletAddress}`);
+            
+            if (userFieldsResponse.data && userFieldsResponse.data.data) {
+              const userFieldNames = userFieldsResponse.data.data.map(field => field.name);
+              console.log('User has previously selected fields:', userFieldNames);
+              
+              setSelectedFields(userFieldNames);
+              setData({ selectedFields: userFieldNames });
+            }
+          } catch (userFieldsError) {
+            console.log('No existing user fields found or error fetching them:', userFieldsError);
+            // This is not a critical error, so we don't set the error state
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching fields:', error);
+        setError(error.message || 'Failed to fetch fields');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchData();
+  }, [walletAddress]);
+
+  // Toggle field selection
+  const toggleField = (fieldName) => {
+    const updatedFields = selectedFields.includes(fieldName)
+      ? selectedFields.filter(f => f !== fieldName)
+      : [...selectedFields, fieldName];
     
     setSelectedFields(updatedFields);
     setData({ selectedFields: updatedFields });
   };
 
+  // Handle keyboard accessibility
   const handleKeyPress = (event, field) => {
     if (event.key === ' ' || event.key === 'Enter') {
       event.preventDefault();
@@ -185,6 +176,7 @@ const OnboardingStep2 = () => {
     }
   };
 
+  // Handle continue button click
   const handleContinue = async () => {
     if (selectedFields.length === 0) {
       alert("Please select at least one field");
@@ -194,10 +186,21 @@ const OnboardingStep2 = () => {
     setIsSubmitting(true);
 
     try {
+      // Save to context
       setData({ 
         selectedFields,
         fieldsSubmitted: true
       });
+      
+      // Save to database if user is logged in
+      if (walletAddress) {
+        console.log('Saving fields to database for user:', walletAddress);
+        await axios.post('http://localhost:5000/api/user-fields', {
+          user_id: walletAddress,
+          fieldNames: selectedFields
+        });
+        console.log('Fields saved to database successfully');
+      }
       
       console.log('Fields saved to context successfully:', selectedFields);
       
@@ -205,7 +208,7 @@ const OnboardingStep2 = () => {
         navigate('/onboarding3');
       }, 500);
     } catch (error) {
-      console.error('Error saving fields to context:', error);
+      console.error('Error saving fields:', error);
       alert('Something went wrong. Please try again.');
     } finally {
       setIsSubmitting(false);
@@ -230,25 +233,6 @@ const OnboardingStep2 = () => {
         <div className="absolute top-24 right-16 w-64 h-64 bg-gradient-to-br from-cyan-400/20 to-blue-500/20 rounded-full blur-3xl animate-pulse-slow" />
         <div className="absolute bottom-24 left-16 w-56 h-56 bg-gradient-to-br from-purple-400/20 to-violet-500/20 rounded-full blur-3xl animate-pulse-slow" style={{ animationDelay: '3s' }} />
         <div className="absolute top-1/3 left-1/3 w-48 h-48 bg-gradient-to-br from-emerald-400/15 to-teal-500/15 rounded-full blur-2xl animate-pulse-slow" style={{ animationDelay: '6s' }} />
-      </div>
-
-      {/* Floating Icons */}
-      <div className="absolute inset-0 pointer-events-none z-10">
-        {[
-          { icon: Briefcase, color: "text-cyan-600", bg: "bg-cyan-100/90", border: "border-cyan-300/70", top: "top-28", left: "left-12", delay: "0s" },
-          { icon: Code, color: "text-purple-600", bg: "bg-purple-100/90", border: "border-purple-300/70", top: "top-40", right: "right-16", delay: "2s" },
-          { icon: TrendingUp, color: "text-emerald-600", bg: "bg-emerald-100/90", border: "border-emerald-300/70", bottom: "bottom-40", left: "left-16", delay: "4s" },
-          { icon: Palette, color: "text-blue-600", bg: "bg-blue-100/90", border: "border-blue-300/70", bottom: "bottom-28", right: "right-12", delay: "1s" }
-        ].map(({ icon: Icon, color, bg, border, delay, ...position }, idx) => (
-          <div key={idx} className={`absolute animate-float-complex hidden lg:block ${Object.entries(position).map(([key, value]) => `${key.split('-')[0]}-${value.split('-')[1]}`).join(' ')}`} style={{ animationDelay: delay }}>
-            <div className="relative group">
-              <div className={`absolute inset-0 w-10 h-10 rounded-xl ${bg} blur-sm opacity-60`} />
-              <div className={`relative ${bg} backdrop-blur-xl border ${border} p-2.5 rounded-xl shadow-lg group-hover:scale-110 transition-all duration-500`}>
-                <Icon className={`w-5 h-5 ${color}`} />
-              </div>
-            </div>
-          </div>
-        ))}
       </div>
 
       <div className="relative z-20 flex flex-col min-h-screen">
@@ -304,8 +288,35 @@ const OnboardingStep2 = () => {
                 <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-cyan-500 via-blue-500 to-purple-500" />
                 
                 <CardContent className="p-6 md:p-8">
+                  {/* Loading State */}
+                  {isLoading && (
+                    <div className="flex flex-col items-center justify-center py-12">
+                      <div className="w-12 h-12 border-4 border-blue-200 border-t-blue-500 rounded-full animate-spin mb-4"></div>
+                      <p className="text-slate-600">Loading available fields...</p>
+                    </div>
+                  )}
+                  
+                  {/* Error State */}
+                  {error && !isLoading && (
+                    <div className="flex flex-col items-center justify-center py-12 text-center">
+                      <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-4">
+                        <svg className="w-8 h-8 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </div>
+                      <h3 className="text-lg font-semibold text-slate-800 mb-2">Failed to Load Fields</h3>
+                      <p className="text-slate-600 mb-4">{error}</p>
+                      <Button 
+                        onClick={() => window.location.reload()}
+                        className="bg-blue-500 hover:bg-blue-600 text-white"
+                      >
+                        Try Again
+                      </Button>
+                    </div>
+                  )}
+
                   {/* Selection Counter */}
-                  {selectedFields.length > 0 && (
+                  {selectedFields.length > 0 && !isLoading && !error && (
                     <div className="text-center mb-8 animate-in slide-in-from-top-4 duration-500">
                       <div className="inline-flex items-center space-x-2 bg-gradient-to-r from-cyan-50/90 to-purple-50/90 border border-cyan-200/70 px-4 py-2 rounded-xl shadow-md backdrop-blur-sm">
                         <div className="relative">
@@ -315,162 +326,162 @@ const OnboardingStep2 = () => {
                         <span className="text-slate-800 font-medium text-sm">
                           {selectedFields.length} field{selectedFields.length === 1 ? '' : 's'} selected
                         </span>
-                        <Star className="w-4 h-4 text-yellow-500" />
                       </div>
                     </div>
                   )}
 
                   {/* Fields Grid */}
-                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 mb-8">
-                    {availableFields.map((field, index) => {
-                      const isSelected = selectedFields.includes(field.name);
-                      const Icon = field.icon;
-                      
-                      return (
-                        <div
-                          key={field.name}
-                          role="button"
-                          tabIndex={0}
-                          className={`
-                            relative group cursor-pointer transition-all duration-300 transform
-                            ${isSelected ? 'scale-105 z-10' : 'hover:scale-105 hover:z-10'}
-                            animate-in slide-in-from-bottom-4
-                          `}
-                          style={{ animationDelay: `${index * 30}ms` }}
-                          onClick={() => toggleField(field.name)}
-                          onKeyDown={(e) => handleKeyPress(e, field.name)}
-                        >
-                          {/* Glow Effect */}
-                          <div className={`
-                            absolute inset-0 bg-gradient-to-r ${field.gradient} opacity-0 
-                            ${isSelected ? 'opacity-25' : 'group-hover:opacity-15'} 
-                            rounded-xl blur-md transition-all duration-300
-                          `} />
+                  {!isLoading && !error && availableFields.length > 0 && (
+                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 mb-8">
+                      {availableFields.map((field, index) => {
+                        const isSelected = selectedFields.includes(field.name);
+                        const colorScheme = getColorScheme(index);
+                        
+                        return (
+                          <div
+                            key={field.id || index}
+                            role="button"
+                            tabIndex={0}
+                            className={`
+                              relative group cursor-pointer transition-all duration-500 transform
+                              ${isSelected ? 'scale-105 z-10' : 'hover:scale-105 hover:z-10'}
+                              animate-in slide-in-from-bottom-4
+                            `}
+                            style={{ animationDelay: `${index * 30}ms` }}
+                            onClick={() => toggleField(field.name)}
+                            onKeyDown={(e) => handleKeyPress(e, field.name)}
+                          >
+                            {/* Enhanced Glow Effect */}
+                            <div className={`
+                              absolute inset-0 bg-gradient-to-r ${colorScheme.glow} 
+                              ${isSelected ? 'opacity-40 blur-lg' : 'opacity-0 group-hover:opacity-20 blur-md'} 
+                              rounded-xl transition-all duration-500
+                            `} />
 
-                          {/* Main Card */}
-                          <div className={`
-                            relative p-4 rounded-xl border transition-all duration-300
-                            ${isSelected 
-                              ? `border-transparent bg-gradient-to-br ${field.bgGradient} shadow-lg ${field.shadowColor}` 
-                              : 'border-slate-200/60 bg-white/70 hover:border-slate-300/80 hover:bg-white/90 hover:shadow-md'
-                            }
-                            backdrop-blur-sm min-h-[100px] flex flex-col items-center justify-center
-                            focus:outline-none focus:ring-2 focus:ring-cyan-500/30
-                          `}>
-                            {/* Selection Indicator */}
-                            {isSelected && (
-                              <div className="absolute top-2 right-2 animate-in zoom-in-50 duration-300">
-                                <div className="relative">
-                                  <div className={`w-5 h-5 bg-gradient-to-r ${field.gradient} rounded-full flex items-center justify-center shadow-md`}>
-                                    <Check className="w-3 h-3 text-white font-bold" />
+                            {/* Main Card */}
+                            <div className={`
+                              relative p-5 rounded-xl border-2 transition-all duration-500
+                              ${isSelected 
+                                ? `border-transparent bg-gradient-to-br ${colorScheme.bg_gradient} shadow-xl ${colorScheme.shadow_color} ring-2 ring-white/50` 
+                                : 'border-slate-200/60 bg-white/80 hover:border-slate-300/80 hover:bg-white/95 hover:shadow-lg'
+                              }
+                              backdrop-blur-sm min-h-[120px] flex flex-col items-center justify-center
+                              focus:outline-none focus:ring-2 focus:ring-cyan-500/30
+                            `}>
+                              {/* Selection Indicator */}
+                              {isSelected && (
+                                <div className="absolute top-3 right-3 animate-in zoom-in-50 duration-300">
+                                  <div className="relative">
+                                    <div className={`w-6 h-6 bg-gradient-to-r ${colorScheme.gradient} rounded-full flex items-center justify-center shadow-lg ring-2 ring-white/50`}>
+                                      <Check className="w-3.5 h-3.5 text-white font-bold" />
+                                    </div>
+                                    {/* Pulsing ring effect */}
+                                    <div className={`absolute inset-0 w-6 h-6 bg-gradient-to-r ${colorScheme.gradient} rounded-full animate-ping opacity-30`} />
                                   </div>
                                 </div>
+                              )}
+
+                              {/* Icon */}
+                              <div className={`
+                                p-3 rounded-xl mb-3 transition-all duration-500 relative
+                                ${isSelected 
+                                  ? `bg-gradient-to-r ${colorScheme.gradient} shadow-lg ring-2 ring-white/30` 
+                                  : `${colorScheme.icon_bg} group-hover:bg-slate-200/80 group-hover:scale-110`
+                                }
+                              `}>
+                                {/* Icon glow effect when selected */}
+                                {isSelected && (
+                                  <div className={`absolute inset-0 bg-gradient-to-r ${colorScheme.gradient} rounded-xl blur-md opacity-50`} />
+                                )}
+                                
+                                {/* Dynamic SVG rendering */}
+                                <svg 
+                                  width="24" 
+                                  height="24" 
+                                  viewBox="0 0 24 24" 
+                                  fill="none" 
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  className={`relative z-10 ${isSelected ? 'text-white' : 'text-slate-700'} transition-colors duration-300`}
+                                >
+                                  <path 
+                                    d={field.svg_path || defaultSvgPath} 
+                                    stroke="currentColor" 
+                                    strokeWidth="2" 
+                                    strokeLinecap="round" 
+                                    strokeLinejoin="round"
+                                  />
+                                </svg>
                               </div>
-                            )}
 
-                            {/* Icon */}
-                            <div className={`
-                              p-2 rounded-lg mb-2 transition-all duration-300 relative
-                              ${isSelected 
-                                ? `bg-gradient-to-r ${field.gradient} shadow-md` 
-                                : 'bg-slate-100/80 group-hover:bg-slate-200/80 group-hover:scale-110'
-                              }
-                            `}>
-                              <Icon className={`w-5 h-5 ${isSelected ? 'text-white' : 'text-slate-700'} transition-all duration-300`} />
-                            </div>
+                              {/* Field Name */}
+                              <div className={`
+                                font-semibold text-center text-sm leading-tight
+                                ${isSelected ? 'text-slate-900' : 'text-slate-800'}
+                                transition-all duration-300
+                              `}>
+                                {field.name}
+                              </div>
 
-                            {/* Field Name */}
-                            <div className={`
-                              font-semibold text-center text-xs leading-tight
-                              ${isSelected ? 'text-slate-900' : 'text-slate-800'}
-                              transition-all duration-300
-                            `}>
-                              {field.name}
+                              {/* Subtle background pattern when selected */}
+                              {isSelected && (
+                                <div className="absolute inset-0 opacity-5">
+                                  <div className="w-full h-full" style={{
+                                    backgroundImage: `radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
+                                                     radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.3) 0%, transparent 50%),
+                                                     radial-gradient(circle at 40% 40%, rgba(120, 219, 255, 0.3) 0%, transparent 50%)`
+                                  }} />
+                                </div>
+                              )}
                             </div>
                           </div>
-                        </div>
-                      );
-                    })}
-                  </div>
+                        );
+                      })}
+                    </div>
+                  )}
+
+                  {/* No Fields Message */}
+                  {!isLoading && !error && availableFields.length === 0 && (
+                    <div className="text-center py-12">
+                      <p className="text-slate-600">No fields available. Please check back later.</p>
+                    </div>
+                  )}
 
                   {/* Continue Button */}
-                  <div className="text-center">
-                    <Button
-                      onClick={handleContinue}
-                      disabled={selectedFields.length === 0 || isSubmitting}
-                      className={`
-                        h-12 px-8 text-base font-semibold rounded-xl shadow-lg relative overflow-hidden
-                        ${selectedFields.length > 0 && !isSubmitting
-                          ? 'bg-gradient-to-r from-cyan-500 via-blue-500 to-purple-500 hover:from-cyan-600 hover:via-blue-600 hover:to-purple-600 text-white border-0 hover:shadow-xl hover:scale-105 transform'
-                          : 'bg-slate-300 text-slate-500 cursor-not-allowed border-0'
-                        }
-                        transition-all duration-300 group
-                      `}
-                    >
-                      {/* Button Glow Effect */}
-                      {selectedFields.length > 0 && !isSubmitting && (
-                        <div className="absolute inset-0 bg-gradient-to-r from-cyan-400 to-purple-400 blur-lg opacity-50 group-hover:opacity-75 transition-opacity duration-300" />
-                      )}
-                      
-                      <span className="relative flex items-center justify-center space-x-2">
-                        <span>{isSubmitting ? 'Saving...' : 'Continue'}</span>
-                        {!isSubmitting && (
-                          <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-300" />
+                  {!isLoading && !error && (
+                    <div className="text-center">
+                      <Button
+                        onClick={handleContinue}
+                        disabled={selectedFields.length === 0 || isSubmitting}
+                        className={`
+                          h-14 px-10 text-lg font-semibold rounded-xl shadow-lg relative overflow-hidden
+                          ${selectedFields.length > 0 && !isSubmitting
+                            ? 'bg-gradient-to-r from-cyan-500 via-blue-500 to-purple-500 hover:from-cyan-600 hover:via-blue-600 hover:to-purple-600 text-white border-0 hover:shadow-2xl hover:scale-105 transform'
+                            : 'bg-slate-300 text-slate-500 cursor-not-allowed border-0'
+                          }
+                          transition-all duration-300 group
+                        `}
+                      >
+                        {/* Button Glow Effect */}
+                        {selectedFields.length > 0 && !isSubmitting && (
+                          <div className="absolute inset-0 bg-gradient-to-r from-cyan-400 to-purple-400 blur-lg opacity-50 group-hover:opacity-75 transition-opacity duration-300" />
                         )}
-                        {isSubmitting && (
-                          <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                        )}
-                      </span>
-                    </Button>
-                  </div>
+                        
+                        <span className="relative flex items-center justify-center space-x-3">
+                          <span>{isSubmitting ? 'Saving...' : 'Continue'}</span>
+                          {!isSubmitting && (
+                            <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-300" />
+                          )}
+                          {isSubmitting && (
+                            <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                          )}
+                        </span>
+                      </Button>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             </div>
           </div>
-
-          {/* Selected Fields Preview */}
-          {/* {selectedFields.length > 0 && (
-            <div className="w-full max-w-4xl mt-8 animate-in slide-in-from-bottom-4 duration-500">
-              <div className="relative group">
-                <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/15 to-teal-500/15 rounded-xl blur-md transition-all duration-300" />
-                <div className="relative bg-gradient-to-br from-emerald-50/90 to-teal-50/90 backdrop-blur-sm border border-emerald-300/60 p-4 rounded-xl shadow-md">
-                  <div className="flex items-start space-x-3">
-                    <div className="relative">
-                      <div className="bg-gradient-to-r from-emerald-500 to-teal-500 p-2 rounded-lg shadow-md">
-                        <Check className="w-4 h-4 text-white" />
-                      </div>
-                    </div>
-                    <div className="flex-1">
-                      <h3 className="font-semibold text-emerald-900 mb-3 flex items-center space-x-2">
-                        <span>Your Selected Fields</span>
-                        <Globe className="w-4 h-4" />
-                      </h3>
-                      <div className="flex flex-wrap gap-2">
-                        {selectedFields.map((field, index) => {
-                          const fieldData = availableFields.find(f => f.name === field);
-                          return (
-                            <span
-                              key={field}
-                              className={`
-                                inline-flex items-center space-x-2 px-3 py-1.5 rounded-lg text-xs font-medium
-                                bg-gradient-to-r ${fieldData?.gradient || 'from-slate-500 to-gray-500'} 
-                                text-white shadow-md hover:scale-105 transition-all duration-300
-                                animate-in zoom-in-50
-                              `}
-                              style={{ animationDelay: `${index * 50}ms` }}
-                            >
-                              {fieldData && <fieldData.icon className="w-3 h-3" />}
-                              <span>{field}</span>
-                            </span>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )} */}
         </div>
       </div>
 
