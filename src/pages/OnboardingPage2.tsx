@@ -120,7 +120,7 @@ const OnboardingStep2 = () => {
         setError(null);
         
         console.log('Fetching fields from API...');
-        const fieldsResponse = await axios.get('http://localhost:5000/api/fields');
+        const fieldsResponse = await axios.get('https://backend-1upx.onrender.com/api/fields');
         
         if (fieldsResponse.data && fieldsResponse.data.data) {
           setAvailableFields(fieldsResponse.data.data);
@@ -133,7 +133,7 @@ const OnboardingStep2 = () => {
         if (walletAddress) {
           console.log('Fetching user fields for address:', walletAddress);
           try {
-            const userFieldsResponse = await axios.get(`http://localhost:5000/api/user-fields/${walletAddress}`);
+            const userFieldsResponse = await axios.get(`https://backend-1upx.onrender.com/api/user-fields/${walletAddress}`);
             
             if (userFieldsResponse.data && userFieldsResponse.data.data) {
               const userFieldNames = userFieldsResponse.data.data.map(field => field.name);
@@ -195,7 +195,7 @@ const OnboardingStep2 = () => {
       // Save to database if user is logged in
       if (walletAddress) {
         console.log('Saving fields to database for user:', walletAddress);
-        await axios.post('http://localhost:5000/api/user-fields', {
+        await axios.post('https://backend-1upx.onrender.com/api/user-fields', {
           user_id: walletAddress,
           fieldNames: selectedFields
         });

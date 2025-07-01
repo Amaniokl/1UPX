@@ -322,7 +322,7 @@ export default function OnboardingStep1() {
     try {
       console.log('Fetching user details for wallet:', walletAddress);
 
-      const response = await fetch(`http://localhost:5000/api/user-details/${walletAddress}`, {
+      const response = await fetch(`https://backend-1upx.onrender.com/api/user-details/${walletAddress}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json'
@@ -485,7 +485,7 @@ export default function OnboardingStep1() {
 
     try {
       // Use your single endpoint that handles both create and update
-      const response = await fetch('http://localhost:5000/api/user-details/', {
+      const response = await fetch('https://backend-1upx.onrender.com/api/user-details/', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

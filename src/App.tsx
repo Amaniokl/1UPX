@@ -1,5 +1,5 @@
-import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
-import { useEffect, useState, useContext } from 'react';
+import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
+import { useEffect, useState } from 'react';
 import { OnboardingProvider } from './components/context/OnboardingContext';
 
 import HomePage from './pages/HomePage';
@@ -8,8 +8,8 @@ import OurMissionPage from './pages/OurMissionPage';
 import OnboardingStep1 from './pages/OnboardingPage1';
 import OnboardingStep2 from './pages/OnboardingPage2';
 import OnboardingStep4 from './pages/OnboaedingPage4';
-import OnboardingStep3 from './pages/OnboardingPage3';
-import Login from './components/Login';
+import OnboardingStep3  from './pages/OnboardingPage3';
+import Login from './components/Login'; // Import the new Login component
 
 import './index.css';
 import OnboardingNavbar from './components/OnboardingNavbar';
@@ -18,96 +18,24 @@ import OnboardingNavbar from './components/OnboardingNavbar';
 import { Web3AuthProvider } from './providers/Web3AuthProvider';
 import Web3ContextProvider from './providers/Web3ContextProvider';
 import { Web3Context, CONNECT_STATES } from './providers/Web3ContextProvider';
+import { useContext } from 'react';
 
-// Enhanced Protected route component with loading state and better UX
+// Protected route component
 const ProtectedRoute = ({ children }) => {
   const web3Context = useContext(Web3Context);
   const navigate = useNavigate();
-  const location = useLocation();
-  const [isChecking, setIsChecking] = useState(true);
-  const [mounted, setMounted] = useState(false);
-
+  
   useEffect(() => {
-    setMounted(true);
-    // Give some time for Web3 context to initialize
-    const timer = setTimeout(() => {
-      setIsChecking(false);
-    }, 1500); // Increased timeout to allow for proper initialization
-
-    return () => clearTimeout(timer);
-  }, []);
-
-  useEffect(() => {
-    if (mounted && !isChecking) {
-      if (web3Context.status === CONNECT_STATES.DISCONNECTED || 
-          web3Context.status === CONNECT_STATES.NOT_CONNECTED) {
-        // Store the intended route for after login
-        sessionStorage.setItem('intendedRoute', location.pathname);
-        navigate('/login', { replace: true });
-      }
-    }
-  }, [web3Context.status, navigate, location.pathname, mounted, isChecking]);
-
-  // Show loading while checking authentication
-  if (isChecking || !mounted || web3Context.status === CONNECT_STATES.CONNECTING) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
-        <div className="text-center">
-          <div className="relative">
-            <div className="animate-spin rounded-full h-16 w-16 border-4 border-slate-600 border-t-cyan-500 mx-auto mb-6"></div>
-            <div className="absolute inset-0 rounded-full h-16 w-16 border-4 border-transparent border-t-blue-400 animate-ping mx-auto opacity-20"></div>
-          </div>
-          <div className="space-y-2">
-            <p className="text-white font-medium">Checking authentication...</p>
-            <p className="text-slate-400 text-sm">Please wait while we verify your connection</p>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // If not connected after checking, the useEffect will handle redirect
-  if (web3Context.status !== CONNECT_STATES.CONNECTED) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
-        <div className="text-center">
-          <div className="animate-pulse text-slate-400">Redirecting to login...</div>
-        </div>
-      </div>
-    );
-  }
-
-  return children;
-};
-
-// Enhanced Login wrapper that handles post-login routing
-const LoginWrapper = () => {
-  const navigate = useNavigate();
-  const location = useLocation();
-  const web3Context = useContext(Web3Context);
-
-  useEffect(() => {
-    // If user is already connected, redirect them
-    if (web3Context.status === CONNECT_STATES.CONNECTED) {
-      const intendedRoute = sessionStorage.getItem('intendedRoute') || '/onboarding1';
-      sessionStorage.removeItem('intendedRoute');
-      navigate(intendedRoute, { replace: true });
+    if (web3Context.status !== CONNECT_STATES.CONNECTED) {
+      navigate('/login');
     }
   }, [web3Context.status, navigate]);
-
-  // If already connected, show loading while redirecting
-  if (web3Context.status === CONNECT_STATES.CONNECTED) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cyan-500 mx-auto mb-4"></div>
-          <p className="text-slate-400">Redirecting...</p>
-        </div>
-      </div>
-    );
+  
+  if (web3Context.status !== CONNECT_STATES.CONNECTED) {
+    return null;
   }
-
-  return <Login />;
+  
+  return children;
 };
 
 // Homepage with optional onboarding prompt
@@ -235,84 +163,14 @@ const HomePageWithAuth = () => {
   );
 };
 
-// Redirect after sign-in with better handling
+
+// Redirect after sign-in
 const AfterSignInRoute = () => {
   const navigate = useNavigate();
-  const web3Context = useContext(Web3Context);
-
   useEffect(() => {
-    if (web3Context.status === CONNECT_STATES.CONNECTED) {
-      const intendedRoute = sessionStorage.getItem('intendedRoute') || '/onboarding1';
-      sessionStorage.removeItem('intendedRoute');
-      navigate(intendedRoute, { replace: true });
-    } else {
-      // If not connected, go to login
-      navigate('/login', { replace: true });
-    }
-  }, [navigate, web3Context.status]);
-
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
-      <div className="text-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cyan-500 mx-auto mb-4"></div>
-        <p className="text-slate-400">Redirecting...</p>
-      </div>
-    </div>
-  );
-};
-
-// Development bypass component (remove in production)
-const DevProtectedRoute = ({ children }) => {
-  const web3Context = useContext(Web3Context);
-  const navigate = useNavigate();
-  const [showDevPrompt, setShowDevPrompt] = useState(false);
-
-  useEffect(() => {
-    if (process.env.NODE_ENV === 'development' && 
-        web3Context.status !== CONNECT_STATES.CONNECTED) {
-      setShowDevPrompt(true);
-    }
-  }, [web3Context.status]);
-
-  // In development, show a prompt but allow access
-  if (process.env.NODE_ENV === 'development' && showDevPrompt) {
-    return (
-      <div className="relative">
-        {/* Dev prompt overlay */}
-        <div className="fixed top-4 right-4 z-50 bg-yellow-900/90 border border-yellow-600 rounded-lg p-4 max-w-sm">
-          <div className="flex items-start">
-            <div className="flex-shrink-0">
-              <svg className="h-5 w-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-              </svg>
-            </div>
-            <div className="ml-3">
-              <h3 className="text-sm font-medium text-yellow-200">Development Mode</h3>
-              <p className="text-xs text-yellow-300 mt-1">Not authenticated - showing page for development</p>
-              <div className="mt-2 flex gap-2">
-                <button
-                  onClick={() => navigate('/login')}
-                  className="text-xs bg-yellow-600 hover:bg-yellow-700 text-white px-2 py-1 rounded"
-                >
-                  Login
-                </button>
-                <button
-                  onClick={() => setShowDevPrompt(false)}
-                  className="text-xs bg-slate-600 hover:bg-slate-700 text-white px-2 py-1 rounded"
-                >
-                  Dismiss
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-        {children}
-      </div>
-    );
-  }
-
-  // Use normal protection in production or when authenticated
-  return <ProtectedRoute>{children}</ProtectedRoute>;
+    navigate('/onboarding1');
+  }, [navigate]);
+  return null;
 };
 
 function App() {
@@ -324,47 +182,47 @@ function App() {
             <Routes>
               <Route path="/" element={<HomePageWithAuth />} />
               
-              <Route path="/login" element={<LoginWrapper />} />
+              <Route path="/login" element={<Login />} />
               <Route path="/after-sign-in" element={<AfterSignInRoute />} />
 
               <Route path="/privacy" element={<PrivacyPage />} />
               <Route path="/our-mission" element={<OurMissionPage />} />
 
-              {/* Protected routes - Use DevProtectedRoute for development, ProtectedRoute for production */}
+              {/* Protected routes */}
               <Route 
                 path="/onboarding1" 
                 element={
-                  <DevProtectedRoute>
+                  <ProtectedRoute>
                     <OnboardingNavbar />
                     <OnboardingStep1 />
-                  </DevProtectedRoute>
+                  </ProtectedRoute>
                 } 
               />
               <Route 
                 path="/onboarding2" 
                 element={
-                  <DevProtectedRoute>
+                  <ProtectedRoute>
                     <OnboardingNavbar />
                     <OnboardingStep2 />
-                  </DevProtectedRoute>
+                  </ProtectedRoute>
                 } 
               />
               <Route 
                 path="/onboarding3" 
                 element={
-                  <DevProtectedRoute>
+                  <ProtectedRoute>
                     <OnboardingNavbar />
                     <OnboardingStep3 />
-                  </DevProtectedRoute>
+                  </ProtectedRoute>
                 } 
               />
               <Route 
                 path="/onboarding4" 
                 element={
-                  <DevProtectedRoute>
+                  <ProtectedRoute>
                     <OnboardingNavbar />
                     <OnboardingStep4 />
-                  </DevProtectedRoute>
+                  </ProtectedRoute>
                 } 
               />
 

@@ -1,358 +1,377 @@
-import React, { useState, useEffect, useContext } from "react";
-import { useNavigate } from "react-router-dom";
-import { Button } from "../components/ui/button";
-import { Card, CardContent } from "../components/ui/card";
-import { Input } from "../components/ui/input";
-import { Textarea } from "../components/ui/textarea";
-import { Label } from "../components/ui/label";
-import { useOnboarding } from '../components/context/OnboardingContext';
-import {
-  Sparkles,
-  ArrowRight,
-  Upload,
-  Play,
-  Bot,
-  FileText,
-  Zap,
-  Brain,
-  Target,
-  Rocket,
-  Settings,
-  ChevronDown,
-  Send,
-  Loader2,
-  CheckCircle,
-  AlertCircle,
-  FolderOpen,
-  Database,
-  X,
-  Plus,
-  Workflow
-} from "lucide-react";
+import React, { useState, useEffect, useContext, useRef } from 'react';
+import { io } from 'socket.io-client';
 import { useWeb3Auth } from "@web3auth/modal-react-hooks";
-import { mintNFTWithEthers, fetchUserNFTs, signUserForDecryption} from "../utils/nftUtils";
+import { mintNFTWithEthers, fetchUserNFTs, signUserForDecryption } from "../utils/nftUtils";
 import { CONNECT_STATES } from '../providers/Web3ContextProvider';
 import { Web3Context } from "../providers/Web3ContextProvider";
 import { ethers } from "ethers";
-import AgentWorkflowManager from "../components/AgentFlow";
+import { 
+  X, 
+  Check, 
+  AlertCircle, 
+  ChevronLeft, 
+  ChevronRight, 
+  Search, 
+  RefreshCw, 
+  Copy, 
+  Trash2, 
+  Loader, 
+  Play, 
+  Info, 
+  CheckCircle, 
+  XCircle,
+  Database,
+  Zap,
+  Bot,
+  FileText,
+  Workflow,
+  Terminal,
+  Upload,
+  FolderOpen
+} from 'lucide-react';
 
-// Agent Type Popup Component
-const AgentTypePopup = ({ isOpen, onClose, selectedType, onSelect }: {
-  isOpen: boolean;
-  onClose: () => void;
-  selectedType: string;
-  onSelect: (type: string) => void;
-}) => {
-  const agentTypes = [
-    {
-      id: 'type1',
-      name: 'Creative Assistant',
-      description: 'Best for content creation and design tasks',
-      icon: Brain,
-      gradient: 'from-purple-500 to-pink-500',
-      bgGradient: 'from-purple-50/80 to-pink-50/80'
-    },
-    {
-      id: 'type2',
-      name: 'Business Analyst',
-      description: 'Optimized for business and analytical tasks',
-      icon: Target,
-      gradient: 'from-cyan-500 to-blue-500',
-      bgGradient: 'from-cyan-50/80 to-blue-50/80'
-    },
-    {
-      id: 'type3',
-      name: 'Technical Expert',
-      description: 'Specialized in technical and development work',
-      icon: Settings,
-      gradient: 'from-emerald-500 to-teal-500',
-      bgGradient: 'from-emerald-50/80 to-teal-50/80'
-    }
-  ];
-
-  if (!isOpen) return null;
-
-  return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full max-h-[80vh] overflow-y-auto">
-        <div className="p-6">
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center space-x-3">
-              <div className="bg-gradient-to-r from-cyan-500 to-blue-500 p-2 rounded-lg shadow-lg">
-                <Bot className="w-5 h-5 text-white" />
-              </div>
-              <h3 className="text-lg font-semibold text-slate-800">Select Agent Type</h3>
-            </div>
-            <button
-              onClick={onClose}
-              className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
-            >
-              <X className="w-5 h-5 text-slate-500" />
-            </button>
-          </div>
-
-          <div className="space-y-3">
-            {agentTypes.map((type) => {
-              const Icon = type.icon;
-              const isSelected = selectedType === type.id;
-
-              return (
-                <button
-                  key={type.id}
-                  onClick={() => {
-                    onSelect(type.id);
-                    onClose();
-                  }}
-                  className={`
-                    relative p-4 rounded-xl border-2 transition-all duration-300 text-left w-full
-                    ${isSelected
-                      ? `border-transparent bg-gradient-to-br ${type.bgGradient} shadow-lg scale-[1.02]`
-                      : 'border-slate-200 bg-white/60 hover:border-slate-300 hover:bg-white/80 hover:scale-[1.01]'
-                    }
-                    backdrop-blur-sm group
-                  `}
-                >
-                  {isSelected && (
-                    <div className="absolute top-3 right-3">
-                      <div className={`w-5 h-5 bg-gradient-to-r ${type.gradient} rounded-full flex items-center justify-center`}>
-                        <CheckCircle className="w-3 h-3 text-white" />
-                      </div>
-                    </div>
-                  )}
-
-                  <div className="flex items-start space-x-3">
-                    <div className={`
-                      p-2 rounded-lg transition-all duration-300
-                      ${isSelected
-                        ? `bg-gradient-to-r ${type.gradient} shadow-lg`
-                        : 'bg-slate-100 group-hover:bg-slate-200'
-                      }
-                    `}>
-                      <Icon className={`w-5 h-5 ${isSelected ? 'text-white' : 'text-slate-600'}`} />
-                    </div>
-
-                    <div className="flex-1">
-                      <h4 className={`font-semibold ${isSelected ? 'text-slate-800' : 'text-slate-700'}`}>
-                        {type.name}
-                      </h4>
-                      <p className={`text-sm ${isSelected ? 'text-slate-600' : 'text-slate-500'}`}>
-                        {type.description}
-                      </p>
-                    </div>
-                  </div>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-// Compact Knowledge Base Upload Component (for Agent KB only)
-const CompactKnowledgeUpload = ({
-  title,
-  icon: Icon,
-  gradient,
-  uploadedFiles,
-  setUploadedFiles
-}: {
-  title: string;
-  icon: React.ComponentType<any>;
-  gradient: string;
-  uploadedFiles: string[];
-  setUploadedFiles: React.Dispatch<React.SetStateAction<string[]>>;
-}) => {
+const AgentWorkflowManager = () => {
+  // State for popup controls
+  const [showAgentPopup, setShowAgentPopup] = useState(false);
+  const [showResultPopup, setShowResultPopup] = useState(false);
+  const [showWorkflowPopup, setShowWorkflowPopup] = useState(false);
+  
+  // Main state
+  const [agents, setAgents] = useState([]);
+  const [selectedAgent, setSelectedAgent] = useState(null);
+  const [agentDetails, setAgentDetails] = useState(null);
+  const [userPrompt, setUserPrompt] = useState('');
+  const [selectedNft, setSelectedNft] = useState('0');
+  const [signature, setSignature] = useState({ data: null });
+  const [loading, setLoading] = useState(false);
+  const [executing, setExecuting] = useState(false);
+  const [workflowResults, setWorkflowResults] = useState([]);
+  const [connectionStatus, setConnectionStatus] = useState('disconnected');
+  const [userNFTs, setUserNFTs] = useState([]);
+  const [currentStep, setCurrentStep] = useState(0);
+  const [totalSteps, setTotalSteps] = useState(0);
+  const [finalResult, setFinalResult] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [pagination, setPagination] = useState({
+    page: 1,
+    limit: 10,
+    total: 0,
+    totalPages: 0,
+    hasNext: false,
+    hasPrev: false
+  });
+  
+  // Knowledge base state
+  const [projectKnowledgeBase, setProjectKnowledgeBase] = useState('');
+  const [agentFiles, setAgentFiles] = useState([]);
   const [isDragOver, setIsDragOver] = useState(false);
+  const [uploadSuccess, setUploadSuccess] = useState(false);
 
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragOver(true);
-  };
-
-  const handleDragLeave = () => {
-    setIsDragOver(false);
-  };
-
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragOver(false);
-    const files = Array.from(e.dataTransfer.files).map(file => file.name);
-    setUploadedFiles(prev => [...prev, ...files]);
-  };
-
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files || []).map(file => file.name);
-    setUploadedFiles(prev => [...prev, ...files]);
-  };
-
-  const removeFile = (indexToRemove: number) => {
-    setUploadedFiles(prev => prev.filter((_, index) => index !== indexToRemove));
-  };
-
-  return (
-    <div className="space-y-3">
-      {/* Header */}
-      <div className="flex items-center space-x-2">
-        <div className={`bg-gradient-to-r ${gradient} p-1.5 rounded-lg shadow-sm`}>
-          <Icon className="w-3.5 h-3.5 text-white" />
-        </div>
-        <h4 className="font-medium text-slate-700 text-sm">{title}</h4>
-      </div>
-
-      {/* Upload Area */}
-      <div
-        onDragOver={handleDragOver}
-        onDragLeave={handleDragLeave}
-        onDrop={handleDrop}
-        className={`
-          relative border-2 border-dashed rounded-lg p-4 text-center transition-all duration-300 cursor-pointer
-          ${isDragOver
-            ? 'border-cyan-400 bg-cyan-50/30'
-            : 'border-slate-200 bg-slate-50/30 hover:border-slate-300 hover:bg-slate-50/50'
-          }
-        `}
-      >
-        <div className="space-y-2">
-          <div className={`
-            w-8 h-8 mx-auto rounded-lg flex items-center justify-center transition-all duration-300
-            ${isDragOver
-              ? 'bg-gradient-to-r from-cyan-400 to-blue-400 scale-105'
-              : `bg-gradient-to-r ${gradient}`
-            }
-          `}>
-            <Plus className="w-4 h-4 text-white" />
-          </div>
-
-          <div>
-            <p className="text-xs text-slate-500 mb-2">
-              Drop files or click
-            </p>
-            <input
-              type="file"
-              multiple
-              onChange={handleFileSelect}
-              className="hidden"
-              id={`file-upload-${title.replace(/\s+/g, '-').toLowerCase()}`}
-            />
-            <Button
-              variant="outline"
-              size="sm"
-              className="h-7 px-3 text-xs border-slate-200 hover:border-cyan-400 hover:text-cyan-600"
-              onClick={() => document.getElementById(`file-upload-${title.replace(/\s+/g, '-').toLowerCase()}`)?.click()}
-            >
-              Browse
-            </Button>
-          </div>
-        </div>
-      </div>
-
-      {/* File List */}
-      {uploadedFiles.length > 0 && (
-        <div className="space-y-1">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-slate-600">Files ({uploadedFiles.length})</span>
-          </div>
-          <div className="max-h-20 overflow-y-auto space-y-1">
-            {uploadedFiles.map((file, index) => (
-              <div key={index} className="flex items-center justify-between p-1.5 bg-white/60 rounded border border-slate-100">
-                <div className="flex items-center space-x-1.5 flex-1 min-w-0">
-                  <FileText className="w-3 h-3 text-slate-400 flex-shrink-0" />
-                  <span className="text-xs text-slate-600 truncate">{file}</span>
-                </div>
-                <button
-                  onClick={() => removeFile(index)}
-                  className="ml-1 p-0.5 hover:bg-red-50 rounded transition-colors duration-200 flex-shrink-0"
-                >
-                  <X className="w-3 h-3 text-red-400" />
-                </button>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-    </div>
-  );
-};
-
-// Selected Job Info Component
-const SelectedJobInfo = ({ job, field }: { job: string; field: string }) => {
-  return (
-    <div className="mb-6 p-4 bg-gradient-to-r from-cyan-50 to-blue-50 border border-cyan-200 rounded-xl shadow-sm">
-      <div className="flex items-start space-x-3">
-        <div className="bg-gradient-to-r from-cyan-500 to-blue-500 p-2 rounded-lg shadow-md">
-          <Workflow className="w-4 h-4 text-white" />
-        </div>
-        <div className="flex-1">
-          <div className="flex items-center space-x-2">
-            <h4 className="font-semibold text-slate-800">Selected Job</h4>
-            <div className="bg-cyan-100 text-cyan-700 text-xs px-2 py-0.5 rounded-full">
-              From {field}
-            </div>
-          </div>
-          <p className="text-sm text-slate-700 mt-1 font-medium">
-            "{job}"
-          </p>
-          <div className="flex items-center mt-2 text-xs text-cyan-600">
-            <span>Ready to execute</span>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-// Full Width Prompt Interface Component
-const PromptInterface = ({ 
-  initialPrompt, 
-  selectedJob, 
-  selectedJobField, 
-  projectKnowledgeBase,
-  selectedAgentType 
-}: {
-  initialPrompt: string;
-  selectedJob?: string;
-  selectedJobField?: string;
-  projectKnowledgeBase: string;
-  selectedAgentType: string;
-}) => {
-  const [prompt, setPrompt] = useState(initialPrompt);
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [result, setResult] = useState("");
-  const [recordId, setRecordId] = useState("");
-  const [responseData, setResponseData] = useState(null);
+  // Socket connection
+  const [socket, setSocket] = useState(null);
   const web3Context = useContext(Web3Context);
-  const {provider} = useWeb3Auth();
+  const { provider } = useWeb3Auth();
+  const resultPopupRef = useRef(null);
 
-  const handleSubmit = async () => {
-    if (!prompt.trim()) return;
+  // Handle click outside of result popup
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (resultPopupRef.current && !resultPopupRef.current.contains(event.target)) {
+        setShowResultPopup(false);
+      }
+    }
 
-    setIsProcessing(true);
-    setResult("");
-    setRecordId("");
-    setResponseData(null);
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [resultPopupRef]);
+
+  useEffect(() => {
+    // Initialize socket connection
+    const socketConnection = io("https://skynetuseragent-c0n1.stackos.io", {
+      transports: ["websocket", "polling"],
+      timeout: 60000,
+      reconnection: true,
+      reconnectionDelay: 1000,
+      reconnectionAttempts: 5,
+      forceNew: true
+    });
+
+    setSocket(socketConnection);
+
+    // Connection event listeners
+    socketConnection.on('connect', () => {
+      console.log('Socket connected:', socketConnection.id);
+      setConnectionStatus('connected');
+    });
+
+    socketConnection.on('disconnect', (reason) => {
+      console.log('Socket disconnected:', reason);
+      setConnectionStatus('disconnected');
+    });
+
+    socketConnection.on('connect_error', (error) => {
+      console.error('Socket connection error:', error);
+      setConnectionStatus('error');
+    });
+
+    // Updated event listeners based on actual server events
+    socketConnection.on('status', (data) => {
+      console.log('Status received:', data);
+      
+      if (data.status === 'starting') {
+        setTotalSteps(data.workflow?.length || 0);
+        setCurrentStep(0);
+        setWorkflowResults([{ 
+          type: 'starting', 
+          data,
+          timestamp: new Date().toISOString() 
+        }]);
+        setShowWorkflowPopup(true);
+      } else if (data.status === 'processing') {
+        setCurrentStep(data.itemID || 0);
+        setWorkflowResults(prev => [...prev, { 
+          type: 'processing', 
+          data,
+          timestamp: new Date().toISOString() 
+        }]);
+      } else if (data.status === 'done') {
+        setWorkflowResults(prev => [...prev, { 
+          type: 'done', 
+          data,
+          timestamp: new Date().toISOString() 
+        }]);
+      } else if (data.status === 'completed') {
+        setExecuting(false);
+        setFinalResult(data.result);
+        setWorkflowResults(prev => [...prev, { 
+          type: 'completed', 
+          data,
+          timestamp: new Date().toISOString() 
+        }]);
+        setShowResultPopup(true);
+      } else if (data.status === 'error') {
+        setExecuting(false);
+        setWorkflowResults(prev => [...prev, { 
+          type: 'error', 
+          error: data.error || data.message,
+          timestamp: new Date().toISOString() 
+        }]);
+      }
+    });
+
+    socketConnection.on('error', (error) => {
+      console.error('Error received:', error);
+      setExecuting(false);
+      setWorkflowResults(prev => [...prev, { 
+        type: 'error', 
+        error: error.message || error,
+        timestamp: new Date().toISOString() 
+      }]);
+    });
+
+    // Debug: Listen for all events
+    socketConnection.onAny((eventName, ...args) => {
+      console.log('Socket event received:', eventName, args);
+    });
+
+    // Cleanup on unmount
+    return () => {
+      socketConnection.disconnect();
+    };
+  }, []);
+
+  // Load user NFTs when wallet is connected
+  useEffect(() => {
+    const loadUserNFTs = async () => {
+      if (web3Context.status === CONNECT_STATES.CONNECTED && provider && web3Context.address) {
+        try {
+          const nfts = await fetchUserNFTs(provider, web3Context.address);
+          setUserNFTs(nfts);
+          if (nfts.length > 0 && !selectedNft) {
+            setSelectedNft(nfts[0]);
+          }
+        } catch (error) {
+          console.error('Error fetching user NFTs:', error);
+        }
+      }
+    };
+
+    loadUserNFTs();
+  }, [web3Context.status, web3Context.address, provider]);
+
+  // Fetch agents list
+  const fetchAgents = async (page = 1, limit = 10) => {
+    setLoading(true);
+    try {
+      const offset = (page - 1) * limit;
+      const response = await fetch(
+        `https://skynetagent-c0n525.stackos.io/api/agents?limit=${limit}&offset=${offset}`
+      );
+      const data = await response.json();
+      
+      if (data.success) {
+        setAgents(data.data.agents);
+        setPagination({
+          page: page,
+          limit: limit,
+          total: data.data.pagination.total || 0,
+          totalPages: data.data.pagination.totalPages || 1,
+          hasNext: data.data.pagination.hasNext || false,
+          hasPrev: data.data.pagination.hasPrev || false
+        });
+      } else {
+        console.error('Failed to fetch agents:', data.message);
+      }
+    } catch (error) {
+      console.error('Error fetching agents:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Fetch agent details and workflow
+  const fetchAgentDetails = async (agentId) => {
+    setLoading(true);
+    try {
+      const response = await fetch(
+        `https://skynetagent-c0n525.stackos.io/api/agents/${agentId}`
+      );
+      const data = await response.json();
+      
+      if (data.success) {
+        setAgentDetails(data.data);
+        setSelectedAgent(agentId);
+        setShowAgentPopup(false); // Close the popup after selection
+      } else {
+        console.error('Failed to fetch agent details:', data.message);
+      }
+    } catch (error) {
+      console.error('Error fetching agent details:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Execute workflow
+  const executeWorkflow = async () => {
+    if (!socket || connectionStatus !== 'connected') {
+      alert('Socket not connected. Please wait for connection or refresh the page.');
+      return;
+    }
+
+    if (!agentDetails || !userPrompt.trim()) {
+      alert('Please select an agent and enter a prompt');
+      return;
+    }
+
+    if (web3Context.status !== CONNECT_STATES.CONNECTED) {
+      alert('Please connect your wallet first');
+      return;
+    }
 
     try {
-      const isAuthenticated = web3Context.status === CONNECT_STATES.CONNECTED;
-      const userAddress = isAuthenticated && web3Context.address ?
-        web3Context.address : '';
+      setExecuting(true);
+      setWorkflowResults([]);
+      setFinalResult(null);
+      setCurrentStep(0);
+      setTotalSteps(0);
+      
+      const userAddress = web3Context.address;
+      const UserNfts = await fetchUserNFTs(provider, userAddress);
+      const UserAuth = await signUserForDecryption(provider, userAddress);
 
+      if (!UserAuth || !UserAuth.data || !UserAuth.data.signature) {
+        throw new Error('Failed to get user authentication signature');
+      }
+
+      const userAuthPayload = UserAuth.data;
+      const nftToUse = selectedNft || (UserNfts.length > 0 ? UserNfts[0] : "0");
+      
+      const payload = {
+        prompt: userPrompt.trim(),
+        userAuthPayload: userAuthPayload,
+        accountNFT: {
+          collectionID: "0",
+          nftID: nftToUse.toString(),
+        },
+        workflow: agentDetails.subnet_list,
+        userAddress: userAddress,
+        timestamp: Date.now(),
+        // Include knowledge base if provided
+        knowledgeBase: projectKnowledgeBase.trim() || undefined
+      };
+
+      console.log('Executing workflow with payload:', payload);
+      
+      setWorkflowResults([{
+        type: 'info',
+        data: 'Sending request to server...',
+        timestamp: new Date().toISOString()
+      }]);
+
+      const timeoutId = setTimeout(() => {
+        if (executing) {
+          setExecuting(false);
+          setWorkflowResults(prev => [...prev, { 
+            type: 'error', 
+            error: 'Workflow execution timeout (5 minutes)', 
+            timestamp: new Date().toISOString() 
+          }]);
+        }
+      }, 300000);
+
+      socket.emit("process-request", payload);
+
+      return () => {
+        clearTimeout(timeoutId);
+      };
+
+    } catch (error) {
+      console.error('Error executing workflow:', error);
+      setExecuting(false);
+      setWorkflowResults(prev => [...prev, { 
+        type: 'error', 
+        error: error.message, 
+        timestamp: new Date().toISOString() 
+      }]);
+    }
+  };
+
+  // Upload to knowledge base
+  const uploadToKnowledgeBase = async () => {
+    if (!projectKnowledgeBase.trim()) {
+      alert('Please enter knowledge base content to upload');
+      return;
+    }
+
+    if (web3Context.status !== CONNECT_STATES.CONNECTED) {
+      alert('Please connect your wallet first');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      
+      const isAuthenticated = web3Context.status === CONNECT_STATES.CONNECTED;
+      const userAddress = isAuthenticated && web3Context.address ? 
+        web3Context.address : '';
+      
       const UserNfts = await fetchUserNFTs(provider, userAddress);
       const UserAuth = await signUserForDecryption(provider, userAddress);
       const userAuthPayload = UserAuth.data;
-      console.log(UserAuth)
+      console.log("Log for ", UserNfts);
       
       const requestBody = {
-        prompt: projectKnowledgeBase, // Using project knowledge base as prompt
+        prompt: projectKnowledgeBase, // Using the knowledge base content as the prompt
         userAuthPayload: userAuthPayload,
         accountNFT: {
           collectionID: "0",
           nftID: UserNfts[0]
-        },
-        agentType: selectedAgentType // Include selected agent type
+        }
       };
-
+      
       // Send request to API
       const response = await fetch("https://knowledgebase-c0n499.stackos.io/natural-request", {
         method: "POST",
@@ -362,529 +381,902 @@ const PromptInterface = ({
         body: JSON.stringify(requestBody)
       });
 
-      if (!response.ok) {
-        throw new Error(`API request failed with status: ${response.status}`);
-      }
-
-      const data = await response.json();
-      console.log("Full API Response:", data);
-
-      // Store the complete response data
-      setResponseData(data);
-
-      // Extract and display record ID if it exists
-      if (data.success && data.data && data.data.sourceRecords && data.data.sourceRecords.length > 0) {
-        const recordId = data.data.sourceRecords[0].id;
-        setRecordId(recordId);
-        console.log("Record ID:", recordId);
-      }
-
-      // Display the response
-      if (data.success && data.data && data.data.answer) {
-        setResult(data.data.answer);
-      } else if (data.message) {
-        setResult(data.message);
+      const result = await response.json();
+      
+      if (response.ok) {
+        setUploadSuccess(true);
+        setTimeout(() => setUploadSuccess(false), 5000); // Hide after 5 seconds
       } else {
-        setResult("Request completed successfully");
+        throw new Error(result.message || 'Failed to upload knowledge base content');
       }
-
     } catch (error) {
-      console.error("Error processing request:", error);
-      setResult(`Error: ${error instanceof Error ? error.message : "Failed to process request"}`);
+      console.error('Error uploading to knowledge base:', error);
+      alert(`Error uploading to knowledge base: ${error.message}`);
     } finally {
-      setIsProcessing(false);
+      setLoading(false);
     }
   };
 
-  return (
-    <div className="grid lg:grid-cols-3 gap-6">
-      {/* Left Column - Project Knowledge Base */}
-      <div className="lg:col-span-1 space-y-4">
-        <div className="space-y-3">
-          {selectedJob && selectedJobField && (
-            <SelectedJobInfo job={selectedJob} field={selectedJobField} />
-          )}
+  // Load agents on component mount
+  useEffect(() => {
+    fetchAgents();
+  }, []);
 
-          <Label htmlFor="project-kb" className="text-sm font-semibold text-slate-700">
-            Project Knowledge Base
-          </Label>
-          <div className="relative">
-            <Textarea
-              id="project-kb"
-              value={projectKnowledgeBase}
-              onChange={() => {}} // Read-only for display, but you can make it editable if needed
-              placeholder="Your project knowledge base content..."
-              className="min-h-[200px] border-slate-200 focus:border-cyan-500 focus:ring-cyan-500/20
-                rounded-xl resize-none pr-12 bg-white/80 backdrop-blur-sm"
-              readOnly
-            />
-            <div className="absolute bottom-3 right-3">
-              <Database className="w-5 h-5 text-slate-400" />
-            </div>
-          </div>
-
-          <Label htmlFor="prompt" className="text-sm font-semibold text-slate-700">
-            Additional Instructions
-          </Label>
-          <div className="relative">
-            <Textarea
-              id="prompt"
-              value={prompt}
-              onChange={(e) => setPrompt(e.target.value)}
-              placeholder="Add any specific instructions..."
-              className="min-h-[100px] border-slate-200 focus:border-cyan-500 focus:ring-cyan-500/20
-                rounded-xl resize-none pr-12 bg-white/80 backdrop-blur-sm"
-            />
-            <div className="absolute bottom-3 right-3">
-              <Zap className="w-5 h-5 text-slate-400" />
-            </div>
-          </div>
-        </div>
-
-        <Button
-          onClick={handleSubmit}
-          disabled={!projectKnowledgeBase.trim() || isProcessing}
-          className={`
-            w-full h-12 rounded-xl font-semibold transition-all duration-300
-            ${projectKnowledgeBase.trim() && !isProcessing
-              ? 'bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white shadow-lg hover:shadow-xl hover:scale-[1.02]'
-              : 'bg-slate-300 text-slate-500 cursor-not-allowed'
-            }
-            group
-          `}
-        >
-          <span className="flex items-center justify-center space-x-2">
-            {isProcessing ? (
-              <>
-                <Loader2 className="w-5 h-5 animate-spin" />
-                <span>Processing...</span>
-              </>
-            ) : (
-              <>
-                <Send className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-300" />
-                <span>Generate</span>
-              </>
-            )}
-          </span>
-        </Button>
-      </div>
-
-      {/* Right Column - Result Display */}
-      <div className="lg:col-span-2 space-y-3">
-        <Label className="text-sm font-semibold text-slate-700">Result</Label>
-        <div className={`
-          min-h-[240px] p-6 rounded-xl border-2 transition-all duration-300
-          ${result
-            ? 'border-emerald-200 bg-gradient-to-br from-emerald-50/80 to-teal-50/80'
-            : 'border-slate-200 bg-slate-50/50'
-          }
-          backdrop-blur-sm
-        `}>
-          {isProcessing ? (
-            <div className="flex items-center justify-center h-48">
-              <div className="text-center space-y-3">
-                <Loader2 className="w-8 h-8 animate-spin text-cyan-500 mx-auto" />
-                <p className="text-slate-600">Generating your content...</p>
-                <div className="w-32 h-2 bg-slate-200 rounded-full mx-auto overflow-hidden">
-                  <div className="h-full bg-gradient-to-r from-cyan-500 to-blue-500 rounded-full animate-pulse" style={{ width: '60%' }} />
-                </div>
-              </div>
-            </div>
-          ) : result ? (
-            <div className="space-y-4">
-              <div className="flex items-center space-x-2">
-                <CheckCircle className="w-5 h-5 text-emerald-600" />
-                <span className="font-semibold text-emerald-800">Generated Successfully</span>
-              </div>
-
-              {/* Show Record ID if available */}
-              {recordId && (
-                <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                  <div className="flex items-center space-x-2 mb-2">
-                    <Database className="w-4 h-4 text-blue-600" />
-                    <span className="text-sm font-medium text-blue-800">Record ID</span>
-                  </div>
-                  <code className="text-xs text-blue-700 bg-blue-100 px-2 py-1 rounded font-mono break-all block">
-                    {recordId}
-                  </code>
-                </div>
-              )}
-
-              {/* Show Response Data Summary */}
-              {responseData && (
-                <div className="p-3 bg-slate-50 border border-slate-200 rounded-lg">
-                  <div className="flex items-center space-x-2 mb-2">
-                    <FileText className="w-4 h-4 text-slate-600" />
-                    <span className="text-sm font-medium text-slate-800">Response Summary</span>
-                  </div>
-                  <div className="text-xs text-slate-600 space-y-1">
-                    <div>Operation: <span className="font-mono bg-slate-200 px-1 rounded">{responseData.operation}</span></div>
-                    <div>Success: <span className={`font-mono px-1 rounded ${responseData.success ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>{responseData.success ? 'true' : 'false'}</span></div>
-                    {responseData.data && responseData.data.totalRecords && (
-                      <div>Total Records: <span className="font-mono bg-slate-200 px-1 rounded">{responseData.data.totalRecords}</span></div>
-                    )}
-                  </div>
-                </div>
-              )}
-
-              {/* Main Response Content */}
-              <div className="p-4 bg-white border border-emerald-200 rounded-lg">
-                <p className="text-slate-700 leading-relaxed whitespace-pre-line">{result}</p>
-              </div>
-
-              {/* Action Buttons */}
-              <div className="flex space-x-3 pt-4 border-t border-emerald-200/60">
-                <Button variant="outline" size="sm" className="border-emerald-200 text-emerald-700 hover:bg-emerald-50">
-                  <FileText className="w-4 h-4 mr-2" />
-                  Download
-                </Button>
-                <Button variant="outline" size="sm" className="border-emerald-200 text-emerald-700 hover:bg-emerald-50">
-                  <Play className="w-4 h-4 mr-2" />
-                  Preview
-                </Button>
-                {recordId && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="border-blue-200 text-blue-700 hover:bg-blue-50"
-                    onClick={() => navigator.clipboard.writeText(recordId)}
-                  >
-                    <Database className="w-4 h-4 mr-2" />
-                    Copy ID
-                  </Button>
-                )}
-              </div>
-            </div>
-          ) : (
-            <div className="flex items-center justify-center h-48">
-              <div className="text-center space-y-4">
-                <Bot className="w-12 h-12 text-slate-400 mx-auto" />
-                <div>
-                  <p className="text-slate-500 mb-2">Your generated content will appear here</p>
-                  <p className="text-xs text-slate-400">Add project knowledge base content and click Generate to get started</p>
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-};
-
-export default function OnboardingStep4() {
-  const navigate = useNavigate();
-  const { data: contextData, setData } = useOnboarding();
-  const [selectedAgentType, setSelectedAgentType] = useState('type2');
-  const [projectKnowledgeBase, setProjectKnowledgeBase] = useState('');
-  const [agentFiles, setAgentFiles] = useState<string[]>([]);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [showAgentPopup, setShowAgentPopup] = useState(false);
-
-  // Get agent type display info
-  const getAgentTypeInfo = (typeId: string) => {
-    const agentTypes = {
-      'type1': { name: 'Creative Assistant', icon: Brain, gradient: 'from-purple-500 to-pink-500' },
-      'type2': { name: 'Business Analyst', icon: Target, gradient: 'from-cyan-500 to-blue-500' },
-      'type3': { name: 'Technical Expert', icon: Settings, gradient: 'from-emerald-500 to-teal-500' }
-    };
-    return agentTypes[typeId] || agentTypes['type2'];
+  // Pagination handlers
+  const handlePrevPage = () => {
+    if (pagination.hasPrev) {
+      fetchAgents(pagination.page - 1, pagination.limit);
+    }
   };
 
-  const selectedAgentInfo = getAgentTypeInfo(selectedAgentType);
-  const SelectedAgentIcon = selectedAgentInfo.icon;
+  const handleNextPage = () => {
+    if (pagination.hasNext) {
+      fetchAgents(pagination.page + 1, pagination.limit);
+    }
+  };
 
-  // Generate initial prompt based on selected job from previous step
-  const initialPrompt = contextData.selectedJob
-    ? `Execute job: ${contextData.selectedJob}`
-    : "Create a 10 page fundraising deck";
+  // Clear results
+  const clearResults = () => {
+    setWorkflowResults([]);
+    setFinalResult(null);
+    setCurrentStep(0);
+    setTotalSteps(0);
+    setShowResultPopup(false);
+    setShowWorkflowPopup(false);
+  };
 
-  const handleComplete = () => {
-    setIsSubmitting(true);
-
-    // Save data to context
-    setData({
-      agentType: selectedAgentType,
-      projectKnowledgeBase: projectKnowledgeBase,
-      agentFiles: agentFiles,
-      setupCompleted: true
+  // Format article content
+  const formatArticleContent = (content) => {
+    if (!content) return '';
+    
+    // Split by double asterisks for headers
+    const sections = content.split(/\*\*(.*?)\*\*/g);
+    
+    return sections.map((section, index) => {
+      if (index % 2 === 1) {
+        // This is a header
+        return (
+          <h3 key={index} className="text-xl font-bold text-gray-800 mt-6 mb-3 border-b-2 border-blue-500 pb-2">
+            {section}
+          </h3>
+        );
+      } else {
+        // This is regular content
+        const paragraphs = section.split('\n\n').filter(p => p.trim());
+        return paragraphs.map((paragraph, pIndex) => (
+          <p key={`${index}-${pIndex}`} className="text-gray-700 mb-4 leading-relaxed">
+            {paragraph.trim()}
+          </p>
+        ));
+      }
     });
-
-    // Navigate to dashboard or completion page
-    setTimeout(() => {
-      navigate('/dashboard');
-    }, 1000);
   };
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/40 to-purple-50/40 relative overflow-hidden">
-      {/* Background Elements */}
-      <div className="absolute inset-0 z-0">
-        {/* Grid Pattern */}
-        <div className="absolute inset-0 opacity-[0.04]" style={{
-          backgroundImage: `
-            linear-gradient(rgba(59, 130, 246, 0.5) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(59, 130, 246, 0.5) 1px, transparent 1px)
-          `,
-          backgroundSize: '40px 40px',
-          animation: 'gridMove 20s linear infinite'
-        }} />
+  // Filter agents by search term
+  const filteredAgents = agents.filter(agent => 
+    agent.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+    agent.description.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
-        {/* Floating Orbs */}
-        <div className="absolute top-24 right-16 w-64 h-64 bg-gradient-to-br from-cyan-400/20 to-blue-500/20 rounded-full blur-3xl animate-pulse-slow" />
-        <div className="absolute bottom-24 left-16 w-56 h-56 bg-gradient-to-br from-purple-400/20 to-violet-500/20 rounded-full blur-3xl animate-pulse-slow" style={{ animationDelay: '3s' }} />
-        <div className="absolute top-1/3 left-1/3 w-48 h-48 bg-gradient-to-br from-emerald-400/15 to-teal-500/15 rounded-full blur-2xl animate-pulse-slow" style={{ animationDelay: '6s' }} />
+  // Knowledge base file handling
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    setIsDragOver(true);
+  };
+
+  const handleDragLeave = () => {
+    setIsDragOver(false);
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    setIsDragOver(false);
+    const files = Array.from(e.dataTransfer.files).map(file => file.name);
+    setAgentFiles(prev => [...prev, ...files]);
+  };
+
+  const handleFileSelect = (e) => {
+    const files = Array.from(e.target.files || []).map(file => file.name);
+    setAgentFiles(prev => [...prev, ...files]);
+  };
+
+  const removeFile = (indexToRemove) => {
+    setAgentFiles(prev => prev.filter((_, index) => index !== indexToRemove));
+  };
+
+  // Progress bar component
+  const ProgressBar = () => {
+    if (totalSteps === 0) return null;
+    
+    const progress = (currentStep / totalSteps) * 100;
+    
+    return (
+      <div className="mb-6">
+        <div className="flex justify-between items-center mb-2">
+          <span className="text-sm font-medium text-gray-700">
+            Workflow Progress
+          </span>
+          <span className="text-sm text-gray-500">
+            Step {currentStep} of {totalSteps}
+          </span>
+        </div>
+        <div className="w-full bg-gray-200 rounded-full h-3">
+          <div 
+            className="bg-blue-500 h-3 rounded-full transition-all duration-300 ease-out"
+            style={{ width: `${progress}%` }}
+          ></div>
+        </div>
       </div>
+    );
+  };
 
-      {/* Floating Icons */}
-      <div className="absolute inset-0 pointer-events-none z-10">
-        {[
-          { icon: Bot, color: "text-cyan-600", bg: "bg-cyan-100/90", border: "border-cyan-300/70", top: "top-28", left: "left-12", delay: "0s" },
-          { icon: Rocket, color: "text-purple-600", bg: "bg-purple-100/90", border: "border-purple-300/70", top: "top-40", right: "right-16", delay: "2s" },
-          { icon: Brain, color: "text-emerald-600", bg: "bg-emerald-100/90", border: "border-emerald-300/70", bottom: "bottom-40", left: "left-16", delay: "4s" },
-          { icon: Zap, color: "text-blue-600", bg: "bg-blue-100/90", border: "border-blue-300/70", bottom: "bottom-28", right: "right-12", delay: "1s" }
-        ].map(({ icon: Icon, color, bg, border, delay, ...position }, idx) => (
-          <div key={idx} className={`absolute animate-float-complex hidden lg:block ${Object.entries(position).map(([key, value]) => `${key.split('-')[0]}-${value.split('-')[1]}`).join(' ')}`} style={{ animationDelay: delay }}>
-            <div className="relative group">
-              <div className={`absolute inset-0 w-10 h-10 rounded-xl ${bg} blur-sm opacity-60`} />
-              <div className={`relative ${bg} backdrop-blur-xl border ${border} p-2.5 rounded-xl shadow-lg group-hover:scale-110 transition-all duration-500`}>
-                <Icon className={`w-5 h-5 ${color}`} />
+  // Step indicator component
+  const StepIndicator = ({ steps, currentStep }) => {
+    if (!steps || steps.length === 0) return null;
+    
+    return (
+      <div className="flex flex-col space-y-4 mb-6">
+        {steps.map((step, index) => (
+          <div 
+            key={index} 
+            className={`flex items-center p-3 rounded-lg transition-all duration-200 ${
+              index < currentStep 
+                ? 'bg-green-50 border border-green-200' 
+                : index === currentStep 
+                  ? 'bg-blue-50 border border-blue-200' 
+                  : 'bg-gray-50 border border-gray-200'
+            }`}
+          >
+            <div className={`
+              w-10 h-10 rounded-full flex items-center justify-center text-sm font-medium mr-4 flex-shrink-0
+              ${index < currentStep ? 'bg-green-500 text-white' : 
+                index === currentStep ? 'bg-blue-500 text-white' : 
+                'bg-gray-300 text-gray-600'}
+            `}>
+              {index < currentStep ? <Check size={18} /> : index + 1}
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="font-medium text-sm truncate">{step.subnetName}</div>
+              <div className="text-xs text-gray-500 truncate">{step.description?.substring(0, 60) || 'No description'}...</div>
+              <div className="text-xs mt-1">
+                {index < currentStep ? (
+                  <span className="text-green-600 flex items-center">
+                    <CheckCircle size={12} className="mr-1" /> Completed
+                  </span>
+                ) : index === currentStep ? (
+                  <span className="text-blue-600 flex items-center">
+                    <Loader size={12} className="mr-1 animate-spin" /> Processing
+                  </span>
+                ) : (
+                  <span className="text-gray-500 flex items-center">
+                    <Clock size={12} className="mr-1" /> Pending
+                  </span>
+                )}
               </div>
             </div>
           </div>
         ))}
       </div>
+    );
+  };
 
-      {/* Agent Type Popup */}
-      <AgentTypePopup
-        isOpen={showAgentPopup}
-        onClose={() => setShowAgentPopup(false)}
-        selectedType={selectedAgentType}
-        onSelect={setSelectedAgentType}
-      />
+  // Agent Selection Popup
+  const AgentSelectionPopup = () => {
+    if (!showAgentPopup) return null;
 
-      <div className="relative z-20 flex flex-col min-h-screen">
-        {/* Top Spacing for Navbar */}
-        <div className="h-16" />
-
-        {/* Main Content */}
-        <div className="flex-1 flex flex-col py-8 px-4">
+    return (
+      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
+        <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col">
           {/* Header */}
-          <div className="text-center mb-10 max-w-4xl mx-auto">
-            <div className="inline-flex items-center justify-center mb-6 relative">
-              {/* Glow Effect */}
-              <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/30 to-purple-500/30 rounded-2xl blur-xl w-16 h-16 animate-pulse-slow" />
-
-              {/* Main Icon Container */}
-              <div className="relative bg-gradient-to-r from-cyan-500 via-blue-500 to-purple-500 p-3 rounded-2xl shadow-xl transform hover:scale-105 transition-all duration-500">
-                <Sparkles className="w-7 h-7 text-white relative z-10" />
-
-                {/* Orbiting Elements */}
-                <div className="absolute -top-1 -right-1 w-4 h-4 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full animate-bounce" style={{ animationDelay: '0.5s' }} />
-                <div className="absolute -bottom-1 -left-1 w-3 h-3 bg-gradient-to-r from-green-400 to-emerald-500 rounded-full animate-bounce" style={{ animationDelay: '1s' }} />
+          <div className="p-6 border-b border-gray-200 flex justify-between items-center sticky top-0 bg-white z-10">
+            <div className="flex items-center space-x-3">
+              <div className="bg-gradient-to-r from-blue-500 to-purple-500 p-2 rounded-lg shadow-md">
+                <Bot className="w-6 h-6 text-white" />
               </div>
+              <h2 className="text-xl font-semibold text-gray-800">Select an AI Agent</h2>
             </div>
-
-            <h1 className="text-3xl md:text-4xl font-bold mb-4 leading-tight text-slate-900">
-              Test Your{" "}
-              <span className="bg-gradient-to-r from-cyan-600 via-blue-600 to-purple-600 bg-clip-text text-transparent">
-                AI Agent
-              </span>
-            </h1>
-
-            <p className="text-lg text-slate-600 leading-relaxed max-w-3xl mx-auto">
-              Configure your AI agent and upload knowledge bases to enhance its capabilities. Test it with sample tasks.
-            </p>
-
-            {/* Divider */}
-            <div className="flex items-center justify-center space-x-3 mt-6">
-              <div className="w-12 h-0.5 bg-gradient-to-r from-transparent to-cyan-500 rounded-full" />
-              <div className="w-6 h-0.5 bg-gradient-to-r from-cyan-500 to-purple-500 rounded-full animate-pulse" />
-              <div className="w-12 h-0.5 bg-gradient-to-r from-purple-500 to-transparent rounded-full" />
-            </div>
+            <button 
+              onClick={() => setShowAgentPopup(false)}
+              className="p-2 rounded-full hover:bg-gray-100 transition-colors"
+            >
+              <X className="w-5 h-5 text-gray-500" />
+            </button>
           </div>
-
-          {/* Agent Selection Button - Outside main box */}
-          <div className="max-w-6xl mx-auto mb-6">
-            <div className="flex justify-center">
+          
+          {/* Search and Filter */}
+          <div className="p-6 border-b border-gray-200 bg-gray-50">
+            <div className="flex items-center space-x-4">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                <input
+                  type="text"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  placeholder="Search agents..."
+                  className="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
               <button
-                onClick={() => setShowAgentPopup(true)}
-                className="group relative bg-white/85 backdrop-blur-xl border-2 border-slate-200 hover:border-cyan-300 
-                  rounded-2xl p-4 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02]"
+                onClick={() => fetchAgents(1, pagination.limit)}
+                className="p-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors flex items-center space-x-2"
               >
-                <div className="flex items-center space-x-4">
-                  <div className={`bg-gradient-to-r ${selectedAgentInfo.gradient} p-3 rounded-xl shadow-lg group-hover:scale-105 transition-transform duration-300`}>
-                    <SelectedAgentIcon className="w-6 h-6 text-white" />
-                  </div>
-                  <div className="text-left">
-                    <div className="flex items-center space-x-2">
-                      <h3 className="font-semibold text-slate-800">Selected Agent</h3>
-                      <ChevronDown className="w-4 h-4 text-slate-500 group-hover:text-cyan-500 transition-colors duration-300" />
-                    </div>
-                    <p className="text-sm text-slate-600">{selectedAgentInfo.name}</p>
-                  </div>
-                </div>
-                
-                {/* Hover indicator */}
-                <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/5 to-purple-500/5 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                <RefreshCw className="w-5 h-5" />
+                <span className="font-medium">Refresh</span>
               </button>
             </div>
           </div>
-
-          {/* Main Content */}
-          <div className="flex-1 pb-8">
-            <div className="max-w-6xl mx-auto">
-              <div className="relative group">
-                {/* Glow Effect */}
-                <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/10 via-blue-500/10 to-purple-500/10 rounded-2xl blur-lg group-hover:blur-xl transition-all duration-500" />
-
-                <Card className="relative bg-white/85 backdrop-blur-xl border-0 shadow-xl rounded-2xl overflow-hidden">
-                  {/* Top Border */}
-                  <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-cyan-500 via-blue-500 to-purple-500" />
-
-                  <CardContent className="p-6 md:p-8 space-y-8">
-                    {/* Top Row - Project Knowledge Base and Agent KB */}
-                    <div className="grid lg:grid-cols-2 gap-8">
-                      {/* Left Column - Project Knowledge Base */}
-                      <div className="space-y-4">
-                        <div className="flex items-center space-x-3 mb-4">
-                          <div className="bg-gradient-to-r from-blue-500 to-cyan-500 p-2 rounded-lg shadow-lg">
-                            <FolderOpen className="w-5 h-5 text-white" />
-                          </div>
-                          <h3 className="text-lg font-semibold text-slate-800">Project Knowledge Base</h3>
-                        </div>
-                        
-                        <div className="space-y-3">
-                          <Label htmlFor="project-kb-input" className="text-sm font-semibold text-slate-700">
-                            Knowledge Base Content
-                          </Label>
-                          <div className="relative">
-                            <Textarea
-                              id="project-kb-input"
-                              value={projectKnowledgeBase}
-                              onChange={(e) => setProjectKnowledgeBase(e.target.value)}
-                              placeholder="Enter your project knowledge base content here. This will be used as the main prompt for the AI agent..."
-                              className="min-h-[200px] border-slate-200 focus:border-cyan-500 focus:ring-cyan-500/20
-                                rounded-xl resize-none pr-12 bg-white/80 backdrop-blur-sm"
-                            />
-                            <div className="absolute bottom-3 right-3">
-                              <Database className="w-5 h-5 text-slate-400" />
-                            </div>
-                          </div>
-                          
-                          {/* Character count */}
-                          <div className="flex justify-between items-center text-xs text-slate-500">
-                            <span>This content will be sent as the main prompt</span>
-                            <span>{projectKnowledgeBase.length} characters</span>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Right Column - Agent Knowledge Base */}
-                      <div className="space-y-4">
-                        <div className="flex items-center space-x-3 mb-4">
-                          <div className="bg-gradient-to-r from-purple-500 to-pink-500 p-2 rounded-lg shadow-lg">
-                            <Upload className="w-5 h-5 text-white" />
-                          </div>
-                          <h3 className="text-lg font-semibold text-slate-800">Agent Knowledge Base</h3>
-                        </div>
-
-                        <CompactKnowledgeUpload
-                          title="Agent KB Files"
-                          icon={Database}
-                          gradient="from-purple-500 to-pink-500"
-                          uploadedFiles={agentFiles}
-                          setUploadedFiles={setAgentFiles}
-                        />
-
-                        {/* Summary */}
-                        {agentFiles.length > 0 && (
-                          <div className="mt-3 p-3 bg-gradient-to-r from-purple-50/60 to-pink-50/60 rounded-lg border border-purple-200/40">
-                            <div className="flex items-center justify-between text-xs">
-                              <span className="text-purple-700 font-medium">
-                                Agent Files: {agentFiles.length}
-                              </span>
-                              <span className="text-purple-600">
-                                Ready for training
-                              </span>
-                            </div>
-                          </div>
-                        )}
+          
+          {/* Agents Grid */}
+          <div className="flex-1 overflow-y-auto p-6">
+            {loading ? (
+              <div className="flex justify-center items-center h-64">
+                <div className="flex flex-col items-center space-y-4">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+                  <p className="text-gray-600">Loading agents...</p>
+                </div>
+              </div>
+            ) : filteredAgents.length === 0 ? (
+              <div className="flex flex-col items-center justify-center h-64 text-center">
+                <AlertCircle className="w-12 h-12 text-gray-400 mb-4" />
+                <h3 className="text-lg font-medium text-gray-700 mb-2">No agents found</h3>
+                <p className="text-gray-500">Try adjusting your search or filters</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {filteredAgents.map((agent) => (
+                  <div 
+                    key={agent.id} 
+                    onClick={() => fetchAgentDetails(agent.id)}
+                    className={`
+                      border-2 rounded-xl p-6 cursor-pointer transition-all duration-300
+                      hover:shadow-lg hover:scale-[1.02] relative group
+                      ${selectedAgent === agent.id 
+                        ? 'border-blue-500 bg-blue-50 shadow-md' 
+                        : 'border-gray-200 hover:border-blue-300'
+                      }
+                    `}
+                  >
+                    <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <div className="bg-blue-500 text-white p-1.5 rounded-full shadow-sm">
+                        <Check className="w-4 h-4" />
                       </div>
                     </div>
-
-                    {/* Full Width AI Interaction Section */}
-                    <div className="space-y-4">
-                      <div className="flex items-center space-x-3 mb-6">
-                        <div className="bg-gradient-to-r from-emerald-500 to-teal-500 p-2 rounded-lg shadow-lg">
-                          <Zap className="w-5 h-5 text-white" />
+                    
+                    <h3 className="font-semibold text-lg mb-2 text-gray-800 pr-8">{agent.name}</h3>
+                    <p className="text-gray-600 text-sm line-clamp-3 leading-relaxed mb-4">{agent.description}</p>
+                    
+                    <div className="flex items-center justify-between mt-2">
+                      <div className="flex items-center space-x-2">
+                        <div className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">
+                          {agent.type || 'Standard'}
                         </div>
-                        <h3 className="text-lg font-semibold text-slate-800">AI Interaction</h3>
+                        <div className="bg-purple-100 text-purple-800 text-xs px-2 py-1 rounded-full">
+                          {agent.subnet_list?.length || 0} steps
+                        </div>
                       </div>
-
-                      <PromptInterface
-                        initialPrompt={initialPrompt}
-                        selectedJob={contextData.selectedJob}
-                        selectedJobField={contextData.selectedJobField}
-                        projectKnowledgeBase={projectKnowledgeBase}
-                        selectedAgentType={selectedAgentType}
-                      />
+                      <button className="text-blue-600 text-sm font-medium hover:text-blue-800 transition-colors">
+                        Select
+                      </button>
                     </div>
-
-                    {/* Final Action */}
-                    <div className="pt-8 border-t border-slate-200/60 text-center">
-                      <Button
-                        onClick={handleComplete}
-                        disabled={isSubmitting}
-                        className="h-14 px-8 text-lg font-semibold rounded-xl shadow-lg
-                          bg-gradient-to-r from-cyan-500 to-purple-500 hover:from-cyan-600 hover:to-purple-600
-                          text-white border-0 transition-all duration-300
-                          hover:shadow-xl hover:scale-[1.02] group relative overflow-hidden"
-                      >
-                        <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700" />
-                        <span className="flex items-center justify-center space-x-2 relative z-10">
-                          <Rocket className="w-5 h-5" />
-                          <span>{isSubmitting ? 'Completing...' : 'Complete Setup'}</span>
-                          <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-300" />
-                        </span>
-                      </Button>
-                    </div>
-                    <AgentWorkflowManager></AgentWorkflowManager>
-                  </CardContent>
-                </Card>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+          
+          {/* Pagination */}
+          <div className="p-6 border-t border-gray-200 bg-gray-50 sticky bottom-0">
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-gray-600">
+                Showing {filteredAgents.length} of {pagination.total} agents
+              </span>
+              <div className="flex gap-2">
+                <button 
+                  onClick={handlePrevPage}
+                  disabled={!pagination.hasPrev}
+                  className="p-2 border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors"
+                >
+                  <ChevronLeft className="w-5 h-5 text-gray-600" />
+                </button>
+                <span className="px-4 py-2 text-gray-600 font-medium">
+                  Page {pagination.page} of {pagination.totalPages}
+                </span>
+                <button 
+                  onClick={handleNextPage}
+                  disabled={!pagination.hasNext}
+                  className="p-2 border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors"
+                >
+                  <ChevronRight className="w-5 h-5 text-gray-600" />
+                </button>
               </div>
             </div>
           </div>
         </div>
       </div>
+    );
+  };
 
-      <style>{`
-        @keyframes float-complex {
-          0%, 100% { transform: translateY(0px) rotate(0deg) scale(1); }
-          25% { transform: translateY(-8px) rotate(1deg) scale(1.02); }
-          50% { transform: translateY(-4px) rotate(-0.5deg) scale(1.01); }
-          75% { transform: translateY(-10px) rotate(0.5deg) scale(1.02); }
-        }
+  // Workflow Progress Popup
+  const WorkflowProgressPopup = () => {
+    if (!showWorkflowPopup) return null;
 
-        @keyframes pulse-slow {
-          0%, 100% { opacity: 0.6; transform: scale(1); }
-          50% { opacity: 0.8; transform: scale(1.02); }
-        }
+    return (
+      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
+        <div className="bg-white rounded-2xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+          {/* Header */}
+          <div className="p-6 border-b border-gray-200 flex justify-between items-center sticky top-0 bg-white z-10">
+            <div className="flex items-center space-x-3">
+              <div className="bg-gradient-to-r from-blue-500 to-green-500 p-2 rounded-lg shadow-md">
+                <Workflow className="w-6 h-6 text-white" />
+              </div>
+              <h2 className="text-xl font-semibold text-gray-800">Workflow Progress</h2>
+            </div>
+            <button 
+              onClick={() => setShowWorkflowPopup(false)}
+              className="p-2 rounded-full hover:bg-gray-100 transition-colors"
+            >
+              <X className="w-5 h-5 text-gray-500" />
+            </button>
+          </div>
+          
+          {/* Progress Content */}
+          <div className="flex-1 overflow-y-auto p-6">
+            <ProgressBar />
+            
+            {agentDetails && (
+              <StepIndicator steps={agentDetails.subnet_list} currentStep={currentStep} />
+            )}
+            
+            {/* Workflow Log */}
+            <div className="mt-6">
+              <h3 className="text-lg font-semibold mb-4 text-gray-800 flex items-center">
+                <Terminal className="w-5 h-5 mr-2" />
+                Execution Log
+              </h3>
+              
+              <div className="space-y-3 max-h-64 overflow-y-auto border border-gray-200 rounded-lg p-4 bg-gray-50">
+                {workflowResults.map((result, index) => (
+                  <div key={index} className={`
+                    border-l-4 pl-4 py-3 rounded-r-lg text-sm
+                    ${result.type === 'error' ? 'border-red-500 bg-red-50' : 
+                      result.type === 'completed' ? 'border-green-500 bg-green-50' : 
+                      result.type === 'done' ? 'border-blue-500 bg-blue-50' :
+                      result.type === 'processing' ? 'border-yellow-500 bg-yellow-50' :
+                      result.type === 'starting' ? 'border-purple-500 bg-purple-50' :
+                      'border-gray-500 bg-gray-50'
+                    }
+                  `}>
+                    <div className="flex justify-between items-center mb-1">
+                      <div className={`text-xs font-medium ${
+                        result.type === 'error' ? 'text-red-700' : 
+                        result.type === 'completed' ? 'text-green-700' : 
+                        result.type === 'done' ? 'text-blue-700' :
+                        result.type === 'processing' ? 'text-yellow-700' :
+                        result.type === 'starting' ? 'text-purple-700' :
+                        'text-gray-700'
+                      }`}>
+                        {result.type.toUpperCase()}
+                        {result.data?.subnet && ` - ${result.data.subnet}`}
+                      </div>
+                      <div className="text-xs text-gray-500">
+                        {new Date(result.timestamp).toLocaleTimeString()}
+                      </div>
+                      </div>
+                    
+                    <div className="text-xs text-gray-600">
+                      {result.type === 'error' ? result.error : 
+                       result.type === 'info' ? result.data :
+                       result.data?.status || 'Processing...'}
+                    </div>
+                  </div>
+                ))}
+                
+                {workflowResults.length === 0 && (
+                  <div className="text-center py-6 text-gray-500">
+                    No workflow data yet
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+          
+          {/* Footer */}
+          <div className="p-6 border-t border-gray-200 bg-gray-50 sticky bottom-0">
+            <div className="flex justify-between items-center">
+              <div className="flex items-center space-x-2">
+                <div className={`w-3 h-3 rounded-full ${executing ? 'bg-green-500 animate-pulse' : 'bg-gray-400'}`}></div>
+                <span className="text-sm font-medium text-gray-700">
+                  {executing ? 'Executing workflow...' : 'Execution complete'}
+                </span>
+              </div>
+              <button
+                onClick={() => setShowWorkflowPopup(false)}
+                className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
 
-        @keyframes gridMove {
-          0% { transform: translate(0, 0); }
-          100% { transform: translate(40px, 40px); }
-        }
+  // Result Popup
+  const ResultPopup = () => {
+    if (!showResultPopup || !finalResult) return null;
 
-        .animate-float-complex {
-          animation: float-complex 10s ease-in-out infinite;
-        }
+    return (
+      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
+               <div 
+          ref={resultPopupRef}
+          className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col"
+        >
+          {/* Header */}
+          <div className="p-6 border-b border-gray-200 flex justify-between items-center sticky top-0 bg-white z-10">
+            <div className="flex items-center space-x-3">
+              <div className="bg-gradient-to-r from-green-500 to-emerald-500 p-2 rounded-lg shadow-md">
+                <FileText className="w-6 h-6 text-white" />
+              </div>
+              <h2 className="text-xl font-semibold text-gray-800">Generated Result</h2>
+            </div>
+            <div className="flex items-center space-x-2">
+              <button
+                onClick={() => navigator.clipboard.writeText(finalResult.result.message)}
+                className="p-2 rounded-full hover:bg-gray-100 transition-colors text-blue-600"
+                title="Copy to clipboard"
+              >
+                <Copy className="w-5 h-5" />
+              </button>
+              <button 
+                onClick={() => setShowResultPopup(false)}
+                className="p-2 rounded-full hover:bg-gray-100 transition-colors"
+                title="Close"
+              >
+                <X className="w-5 h-5 text-gray-500" />
+              </button>
+            </div>
+          </div>
+          
+          {/* Result Content */}
+          <div className="flex-1 overflow-y-auto p-6">
+            <div className="prose max-w-none bg-gray-50 rounded-xl p-6 border border-gray-200 shadow-sm">
+              {formatArticleContent(finalResult.result.message)}
+            </div>
+            
+            {/* Metadata */}
+            <div className="mt-6 bg-blue-50 rounded-xl p-4 border border-blue-200">
+              <h3 className="text-sm font-semibold text-blue-800 mb-2 flex items-center">
+                <Info className="w-4 h-4 mr-2" />
+                Result Metadata
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="text-xs">
+                  <div className="text-blue-600 font-medium mb-1">Completion Time</div>
+                  <div className="text-gray-700">
+                    {new Date(finalResult.timestamp || Date.now()).toLocaleString()}
+                  </div>
+                </div>
+                <div className="text-xs">
+                  <div className="text-blue-600 font-medium mb-1">Agent</div>
+                  <div className="text-gray-700">{agentDetails?.name || 'Unknown'}</div>
+                </div>
+                <div className="text-xs">
+                  <div className="text-blue-600 font-medium mb-1">Prompt</div>
+                  <div className="text-gray-700 line-clamp-2">{userPrompt}</div>
+                </div>
+                <div className="text-xs">
+                  <div className="text-blue-600 font-medium mb-1">NFT ID</div>
+                  <div className="text-gray-700">{selectedNft}</div>
+                </div>
+              </div>
+            </div>
+            
+            {/* View Log Button */}
+            <div className="mt-6 flex justify-center">
+              <button
+                onClick={() => {
+                  setShowResultPopup(false);
+                  setShowWorkflowPopup(true);
+                }}
+                className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors flex items-center space-x-2 text-sm"
+              >
+                <Terminal className="w-4 h-4" />
+                <span>View Execution Log</span>
+              </button>
+            </div>
+          </div>
+          
+          {/* Footer */}
+          <div className="p-6 border-t border-gray-200 bg-gray-50 sticky bottom-0">
+            <div className="flex justify-between items-center">
+              <div className="flex items-center space-x-2">
+                <CheckCircle className="w-5 h-5 text-green-500" />
+                <span className="text-sm font-medium text-gray-700">
+                  Generation complete
+                </span>
+              </div>
+              <div className="flex space-x-3">
+                <button
+                  onClick={clearResults}
+                  className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors flex items-center space-x-2"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  <span>Clear</span>
+                </button>
+                <button
+                  onClick={() => setShowResultPopup(false)}
+                  className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
 
-        .animate-pulse-slow {
-          animation: pulse-slow 3s ease-in-out infinite;
-        }
-      `}</style>
+  // Knowledge Base Upload Component
+  const KnowledgeBaseUpload = () => {
+    return (
+      <div className="space-y-3">
+        {/* Header */}
+        <div className="flex items-center space-x-2">
+          <div className="bg-gradient-to-r from-purple-500 to-pink-500 p-1.5 rounded-lg shadow-sm">
+            <Upload className="w-3.5 h-3.5 text-white" />
+          </div>
+          <h4 className="font-medium text-slate-700 text-sm">Agent Knowledge Base</h4>
+        </div>
+
+        {/* Upload Area */}
+        <div
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          onDrop={handleDrop}
+          className={`
+            relative border-2 border-dashed rounded-lg p-4 text-center transition-all duration-300 cursor-pointer
+            ${isDragOver
+              ? 'border-cyan-400 bg-cyan-50/30'
+              : 'border-slate-200 bg-slate-50/30 hover:border-slate-300 hover:bg-slate-50/50'
+            }
+          `}
+        >
+          <div className="space-y-2">
+            <div className={`
+              w-8 h-8 mx-auto rounded-lg flex items-center justify-center transition-all duration-300
+              ${isDragOver
+                ? 'bg-gradient-to-r from-cyan-400 to-blue-400 scale-105'
+                : 'bg-gradient-to-r from-purple-500 to-pink-500'
+              }
+            `}>
+              <Upload className="w-4 h-4 text-white" />
+            </div>
+
+            <div>
+              <p className="text-xs text-slate-500 mb-2">
+                Drop files or click
+              </p>
+              <input
+                type="file"
+                multiple
+                onChange={handleFileSelect}
+                className="hidden"
+                id="file-upload-agent-kb"
+              />
+              <button
+                className="px-3 py-1.5 text-xs border border-slate-200 rounded-lg hover:border-cyan-400 hover:text-cyan-600 bg-white"
+                onClick={() => document.getElementById('file-upload-agent-kb')?.click()}
+              >
+                Browse
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* File List */}
+        {agentFiles.length > 0 && (
+          <div className="space-y-1">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-medium text-slate-600">Files ({agentFiles.length})</span>
+            </div>
+            <div className="max-h-20 overflow-y-auto space-y-1">
+              {agentFiles.map((file, index) => (
+                <div key={index} className="flex items-center justify-between p-1.5 bg-white/60 rounded border border-slate-100">
+                  <div className="flex items-center space-x-1.5 flex-1 min-w-0">
+                    <FileText className="w-3 h-3 text-slate-400 flex-shrink-0" />
+                    <span className="text-xs text-slate-600 truncate">{file}</span>
+                  </div>
+                  <button
+                    onClick={() => removeFile(index)}
+                    className="ml-1 p-0.5 hover:bg-red-50 rounded transition-colors duration-200 flex-shrink-0"
+                  >
+                    <X className="w-3 h-3 text-red-400" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  return (
+    <div className="agent-workflow-manager p-6 max-w-7xl mx-auto mt-16"> {/* Added mt-16 for navbar spacing */}
+      {/* Compact UI Component */}
+      <div className="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-200">
+        {/* Header */}
+        <div className="bg-gradient-to-r from-blue-500 to-purple-500 p-6 text-white">
+          <div className="flex justify-between items-center">
+            <div className="flex items-center space-x-4">
+              <div className="bg-white/20 p-3 rounded-lg backdrop-blur-sm">
+                <Bot className="w-6 h-6" />
+              </div>
+              <div>
+                <h1 className="text-2xl font-bold">AI Agent Workflow</h1>
+                <p className="text-blue-100">Execute complex AI tasks with blockchain authentication</p>
+              </div>
+            </div>
+            <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-2 bg-white/10 px-3 py-1.5 rounded-full backdrop-blur-sm">
+                <div className={`w-2.5 h-2.5 rounded-full ${
+                  connectionStatus === 'connected' ? 'bg-green-400' : 
+                  connectionStatus === 'error' ? 'bg-red-400' : 'bg-yellow-400'
+                }`}></div>
+                <span className="text-xs font-medium">
+                  {connectionStatus === 'connected' ? 'Connected' : 
+                   connectionStatus === 'error' ? 'Error' : 'Connecting...'}
+                </span>
+              </div>
+              <div className="flex items-center space-x-2 bg-white/10 px-3 py-1.5 rounded-full backdrop-blur-sm">
+                <div className={`w-2.5 h-2.5 rounded-full ${
+                  web3Context.status === CONNECT_STATES.CONNECTED ? 'bg-green-400' : 'bg-red-400'
+                }`}></div>
+                <span className="text-xs font-medium">
+                  {web3Context.status === CONNECT_STATES.CONNECTED ? 'Wallet Connected' : 'Wallet Disconnected'}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Agent Selection */}
+        <div className="p-6 border-b border-gray-200">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div className="flex-1">
+              <label className="block text-sm font-medium mb-2 text-gray-700">Selected Agent</label>
+              <div 
+                onClick={() => setShowAgentPopup(true)}
+                className="flex items-center justify-between p-4 border border-gray-300 rounded-lg cursor-pointer hover:border-blue-400 transition-colors group"
+              >
+                {agentDetails ? (
+                  <div className="flex items-center space-x-3">
+                    <div className="bg-blue-100 p-2 rounded-lg">
+                      <Bot className="w-5 h-5 text-blue-600" />
+                    </div>
+                    <div>
+                      <div className="font-medium text-gray-800">{agentDetails.name}</div>
+                      <div className="text-xs text-gray-500 line-clamp-1">{agentDetails.description}</div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-gray-500">Select an AI agent</div>
+                )}
+                <div className="bg-blue-50 text-blue-600 p-1.5 rounded-lg group-hover:bg-blue-100 transition-colors">
+                  <Search className="w-5 h-5" />
+                </div>
+              </div>
+            </div>
+            
+            <div className="flex-1">
+              <label className="block text-sm font-medium mb-2 text-gray-700">NFT ID</label>
+              <select
+                value={selectedNft}
+                onChange={(e) => setSelectedNft(e.target.value)}
+                className="w-full p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                disabled={web3Context.status !== CONNECT_STATES.CONNECTED}
+              >
+                <option value="0">Default (0)</option>
+                {userNFTs.map(nft => (
+                  <option key={nft} value={nft}>NFT #{nft}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+        </div>
+
+        {/* Knowledge Base Section */}
+        <div className="p-6 border-b border-gray-200">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Project Knowledge Base */}
+            <div className="space-y-4">
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center space-x-3">
+                  <div className="bg-gradient-to-r from-blue-500 to-cyan-500 p-2 rounded-lg shadow-lg">
+                    <FolderOpen className="w-5 h-5 text-white" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-slate-800">Project Knowledge Base</h3>
+                </div>
+                
+                {/* Upload to Knowledge Base Button */}
+                <button
+                  onClick={uploadToKnowledgeBase}
+                  disabled={loading || !projectKnowledgeBase.trim() || web3Context.status !== CONNECT_STATES.CONNECTED}
+                  className="px-4 py-2 bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-lg 
+                    hover:from-blue-600 hover:to-cyan-600 disabled:opacity-50 disabled:cursor-not-allowed 
+                    font-medium text-sm transition-all duration-200 flex items-center space-x-2"
+                >
+                  {loading ? (
+                    <>
+                      <Loader className="w-4 h-4 animate-spin" />
+                      <span>Uploading...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Upload className="w-4 h-4" />
+                      <span>Upload to KB</span>
+                    </>
+                  )}
+                </button>
+              </div>
+              
+              <div className="space-y-3">
+                <label htmlFor="project-kb-input" className="text-sm font-semibold text-slate-700">
+                  Knowledge Base Content
+                </label>
+                <div className="relative">
+                  <textarea
+                    id="project-kb-input"
+                    value={projectKnowledgeBase}
+                    onChange={(e) => setProjectKnowledgeBase(e.target.value)}
+                    placeholder="Enter your project knowledge base content here. This will be used as context for the AI agent..."
+                    className="min-h-[150px] w-full border border-slate-200 focus:border-cyan-500 focus:ring-cyan-500/20
+                      rounded-xl resize-none pr-12 bg-white/80 backdrop-blur-sm p-3"
+                  />
+                  <div className="absolute bottom-3 right-3">
+                    <Database className="w-5 h-5 text-slate-400" />
+                  </div>
+                </div>
+                
+                {/* Character count */}
+                <div className="flex justify-between items-center text-xs text-slate-500">
+                  <span>This content will be sent as context</span>
+                  <span>{projectKnowledgeBase.length} characters</span>
+                </div>
+              </div>
+              
+              {/* Success notification */}
+              {uploadSuccess && (
+                <div className="mt-3 p-3 bg-green-50 border-l-4 border-green-400 rounded-lg animate-fadeIn">
+                  <div className="flex items-center">
+                    <CheckCircle className="w-5 h-5 text-green-600 mr-2" />
+                    <p className="text-sm text-green-800">
+                      Knowledge base content uploaded successfully!
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Agent Knowledge Base */}
+            <div className="space-y-4">
+              <div className="flex items-center space-x-3 mb-2">
+                <div className="bg-gradient-to-r from-purple-500 to-pink-500 p-2 rounded-lg shadow-lg">
+                  <Upload className="w-5 h-5 text-white" />
+                </div>
+                <h3 className="text-lg font-semibold text-slate-800">Agent Knowledge Base</h3>
+              </div>
+
+              <KnowledgeBaseUpload />
+            </div>
+          </div>
+        </div>
+
+        {/* Prompt Input */}
+        <div className="p-6">
+          <label className="block text-sm font-medium mb-2 text-gray-700">User Prompt</label>
+          <textarea
+            value={userPrompt}
+            onChange={(e) => setUserPrompt(e.target.value)}
+            placeholder="Enter your prompt for the agent..."
+            className="w-full p-4 border border-gray-300 rounded-lg h-32 resize-vertical focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            disabled={!agentDetails}
+          />
+          
+          {/* Wallet Warning */}
+          {web3Context.status !== CONNECT_STATES.CONNECTED && (
+            <div className="mt-4 p-3 bg-yellow-50 border-l-4 border-yellow-400 rounded-lg">
+              <div className="flex items-center">
+                <AlertCircle className="w-5 h-5 text-yellow-600 mr-2" />
+                <p className="text-sm text-yellow-800">
+                  Please connect your wallet to execute workflows
+                </p>
+              </div>
+            </div>
+          )}
+          
+          {/* Execute Button */}
+          <div className="mt-6">
+            <button
+              onClick={executeWorkflow}
+              disabled={executing || web3Context.status !== CONNECT_STATES.CONNECTED}
+              className="w-full py-4 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-lg hover:from-blue-600 hover:to-purple-600 disabled:opacity-50 disabled:cursor-not-allowed font-medium text-lg transition-all duration-200 flex items-center justify-center space-x-3"
+            >
+              {executing ? (
+                <>
+                  <Loader className="w-5 h-5 animate-spin" />
+                  <span>Executing Workflow...</span>
+                </>
+              ) : (
+                <>
+                  <Play className="w-5 h-5" />
+                  <span>Execute Workflow</span>
+                </>
+              )}
+            </button>
+          </div>
+          
+          {/* Status Indicators */}
+          {executing && (
+            <div className="mt-4 flex justify-between items-center">
+              <div className="text-sm text-gray-600">
+                Processing step {currentStep} of {totalSteps}
+              </div>
+              <button
+                onClick={() => setShowWorkflowPopup(true)}
+                className="text-blue-600 text-sm hover:text-blue-800 transition-colors flex items-center space-x-1"
+              >
+                <Terminal className="w-4 h-4" />
+                <span>View progress</span>
+              </button>
+            </div>
+          )}
+          
+          {finalResult && !executing && (
+            <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg flex justify-between items-center">
+              <div className="flex items-center space-x-3">
+                <CheckCircle className="w-5 h-5 text-green-600" />
+                <span className="text-green-800 font-medium">Result generated successfully</span>
+              </div>
+              <button
+                onClick={() => setShowResultPopup(true)}
+                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium"
+              >
+                View Result
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+      
+      {/* Popups */}
+      <AgentSelectionPopup />
+      <WorkflowProgressPopup />
+      <ResultPopup />
     </div>
   );
-}
+};
+
+// Clock icon component since it wasn't imported
+const Clock = ({ size = 24, className = "" }) => (
+  <svg 
+    xmlns="http://www.w3.org/2000/svg" 
+    width={size} 
+    height={size} 
+    viewBox="0 0 24 24" 
+    fill="none" 
+    stroke="currentColor" 
+    strokeWidth="2" 
+    strokeLinecap="round" 
+    strokeLinejoin="round" 
+    className={className}
+  >
+    <circle cx="12" cy="12" r="10"></circle>
+    <polyline points="12 6 12 12 16 14"></polyline>
+  </svg>
+);
+
+export default AgentWorkflowManager;
 
